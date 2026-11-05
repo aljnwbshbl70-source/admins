@@ -148,6 +148,11 @@ button.danger:hover { background: var(--bad); color: #fff; }
 .login-card h1 { font-size: 1.8rem; margin-bottom: 6px; }
 .login-card label { text-align: right; }
 
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:22px}
+.tiles button{flex-direction:column;padding:22px 10px;font-size:1.9rem;border-radius:18px;position:relative;gap:4px}
+.tiles button b{font-size:.92rem}
+.tiles button:hover{transform:translateY(-3px);border-color:var(--accent)}
+.tiles i{position:absolute;top:8px;left:8px;background:var(--bad);color:#fff;font-style:normal;font-size:.72rem;border-radius:99px;min-width:20px;padding:0 6px}
 .chart-bar-wrap { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
 .chart-row { display: flex; align-items: center; gap: 12px; }
 .chart-label { width: 90px; font-size: 0.85rem; font-weight: 600; }
@@ -198,6 +203,14 @@ button.danger:hover { background: var(--bad); color: #fff; }
     <section class="view" id="v-dash">
       <h1>الرئيسية والتحليلات</h1>
       <p class="sub">مؤشرات الأداء السريعة وإحصائيات المتجر المباشرة</p>
+      <div class="tiles">
+        <button data-go="newp">➕<b>منتج جديد</b></button>
+        <button data-go="prods">🛍️<b>المنتجات</b></button>
+        <button data-go="orders">📦<b>الطلبات</b><i id="tile-new" hidden>0</i></button>
+        <button data-go="cats">📁<b>الأقسام</b></button>
+        <button data-go="sets">⚙️<b>الإعدادات</b></button>
+        <button data-go="csv">📥<b>تصدير CSV</b></button>
+      </div>
       <div class="stats">
         <div class="stat"><span>إجمالي المنتجات</span><b id="s-prod">0</b></div>
         <div class="stat"><span>الأقسام</span><b id="s-cat">0</b></div>
@@ -255,6 +268,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <label for="p-usage">طريقة الاستخدام / ملاحظات هامة</label>
         <textarea id="p-usage" placeholder="مثال: يوضع بعد الاستحمام على نقاط النبض..."></textarea>
 
+        <div class="grid2"><div><label for="p-keywords">كلمات البحث (مثل: عود، بخور)</label><input id="p-keywords"></div><div><label for="p-badge">شارة على المنتج (جديد / خصم / الأكثر طلباً)</label><input id="p-badge" placeholder="اختياري"></div></div>
         <label for="p-files">صور المنتج (يمكن اختيار أكثر من صورة)</label>
         <input id="p-files" type="file" accept="image/*" multiple>
         <p class="hint" id="p-imgInfo">يتم الرفع تلقائياً إلى ImgBB. الصورة الأولى تعتبر الرئيسية.</p>
@@ -318,7 +332,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
             </select>
           </div>
           <div style="display:flex; align-items:flex-end;">
-            <button type="button" class="secondary" id="oRefresh">🔄 تحديث الطلبات</button>
+            <input id="o-q" placeholder="🔍 بحث بالاسم أو الجوال" style="margin-left:8px"><button type="button" class="secondary" id="oRefresh">🔄 تحديث الطلبات</button>
           </div>
         </div>
       </div>
@@ -408,6 +422,14 @@ button.danger:hover { background: var(--bad); color: #fff; }
           <div><label for="x-insta">رابط انستقرام / سناب</label><input id="x-insta" dir="ltr" placeholder="https://instagram.com/..."></div>
         </div>
 
+        <h2 style="margin-top:24px">🚚 خيارات الطلب</h2>
+        <div class="grid2">
+          <div><label for="x-freeFrom">توصيل مجاني فوق مبلغ (ر.س)</label><input id="x-freeFrom" type="number" inputmode="decimal" placeholder="مثال: 500"></div>
+          <div><label for="x-etaText">وقت التوصيل المتوقع</label><input id="x-etaText" placeholder="يوصلك خلال 2-3 أيام"></div>
+          <div><label class="check"><input id="x-pickupOn" type="checkbox"> السماح بالاستلام من المحل</label></div>
+          <div><label class="check"><input id="x-giftOn" type="checkbox"> خيار الطلب كهدية</label></div>
+          <div><label class="check"><input id="x-waFloat" type="checkbox"> زر واتساب عائم في المتجر</label></div>
+        </div>
         <button class="main" type="submit" style="margin-top:20px;">حفظ الإعدادات بالكامل</button>
       </form>
     </section>
@@ -421,7 +443,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs, getCountFromServer, query, where, orderBy, limit, startAfter, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs, getCountFromServer, query, where, orderBy, limit, startAfter, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDhZrTQ4QFM8AhznH5ArQa9A8_kY86G2vM",
@@ -509,6 +531,10 @@ $("nav").addEventListener("click", e => {
   const v = e.target.closest("button")?.dataset.v;
   if (v) go(v);
 });
+document.querySelectorAll(".tiles button").forEach(b => b.addEventListener("click", () => {
+  const g = b.dataset.go;
+  if (g === "newp") { go("prods"); openForm(null); } else if (g === "csv") exportDataCSV(); else go(g);
+}));
 $("menuBtn").addEventListener("click", () => $("side").classList.toggle("open"));
 
 $("qa-prod").addEventListener("click", () => { go("prods"); openForm(null); });
@@ -516,11 +542,18 @@ $("qa-cat").addEventListener("click", () => go("cats"));
 $("qa-csv").addEventListener("click", exportDataCSV);
 
 /* ---------- الدخول ---------- */
+function beep() { try { const a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.setValueAtTime(.25, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + .8); o.start(); o.stop(a.currentTime + .8); } catch {} }
 async function initApp() {
   $("loginBox").hidden = true;
   $("shell").hidden = false;
   if (appStarted) return;
   appStarted = true;
+  let first = true;
+  onSnapshot(query(collection(db, "orders"), where("status", "==", "new")), snap => {
+    $("tile-new").textContent = snap.size; $("tile-new").hidden = !snap.size;
+    if (!first) snap.docChanges().forEach(c => { if (c.type === "added") { beep(); showToast("🔔 طلب جديد وصل!"); if (!$("v-orders").hidden) loadOrders(true); } });
+    first = false;
+  }, () => {});
   try { await loadCategories(); } catch (err) { showToast("تعذر تحميل الأقسام: " + err.message, true); }
   go("dash");
 }
@@ -793,6 +826,7 @@ function renderProductRow(prod) {
   acts.append(
     createButton("👁️ معاينة", () => previewProductModal(prod)),
     createButton("تعديل", () => openForm(prod)),
+    createButton("نسخ", () => { openForm(prod); editProdId = null; $("pTitle").textContent = "منتج جديد (نسخة)"; $("p-name").value = prod.name + " (نسخة)"; }),
     createButton(prod.status === "hidden" ? "إظهار" : "إخفاء", () => toggleProductStatus(prod)),
     createButton("حذف", () => deleteProduct(prod), "danger")
   );
@@ -925,6 +959,7 @@ function openForm(product = null) {
   $("p-usage").value = product?.usage || "";
   $("p-status").value = product?.status || "available";
   $("p-featured").checked = !!product?.featured;
+  $("p-keywords").value = product?.keywords || ""; $("p-badge").value = product?.badge || "";
   $("p-imgInfo").textContent = "يتم الرفع تلقائياً إلى ImgBB. الصورة الأولى تعتبر الرئيسية.";
 
   $("sizesContainer").replaceChildren();
@@ -958,6 +993,7 @@ $("pForm").addEventListener("submit", async e => {
     sizes,
     flavors: readFlavorsFromUI(),
     minPrice: Math.min(...sizes.map(s => s.price)),
+    keywords: $("p-keywords").value.trim(), badge: $("p-badge").value.trim(),
     status: $("p-status").value,
     featured: $("p-featured").checked,
     updatedAt: serverTimestamp()
@@ -1095,11 +1131,13 @@ async function loadOrders(reset = false) {
   }
 }
 $("o-status").addEventListener("change", () => loadOrders(true));
+$("o-q").addEventListener("input", e => { const v = e.target.value.trim().toLowerCase(); document.querySelectorAll("#oList .item").forEach(r => { r.hidden = !!v && !(r.dataset.s || "").includes(v); }); });
 $("oRefresh").addEventListener("click", () => loadOrders(true));
 $("oMore").addEventListener("click", () => loadOrders(false));
 
 function renderOrderRow(ord) {
   const row = createElement("div", "", "item");
+  row.dataset.s = ((ord.customerName || "") + " " + (ord.phone || "") + " " + ord.id).toLowerCase();
   const info = createElement("div", "", "info");
   info.innerHTML = `
     <b>طلب #${esc(ord.id.slice(0, 6))} - ${esc(ord.customerName || "زبون")}</b>
@@ -1137,7 +1175,7 @@ function showOrderDetailsModal(ord) {
   ];
   (ord.items || []).forEach(item => {
     nodes.push(createElement("div",
-      `• ${item.qty || 1}x ${item.name} (${item.size || ""})${item.flavor ? " - نكهة: " + item.flavor : ""} = ${item.price} ر.س`, "meta"));
+      `• ${item.qty || 1}x ${item.name} (${item.size || ""})${item.flavor ? " - نكهة: " + item.flavor : ""} ${item.note ? " 📝 " + item.note : ""} = ${item.price} ر.س`, "meta"));
   });
   nodes.push(createElement("h2", `المبلغ الإجمالي: ${ord.total || 0} ر.س`, "pv-price"));
   nodes.push(createElement("label", "تغيير حالة الطلب:"), statusSelect);
@@ -1157,7 +1195,7 @@ function showOrderDetailsModal(ord) {
 }
 
 /* ---------- الإعدادات ---------- */
-const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"]];
+const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"]];
 async function loadSettings() {
   try {
     const data = (await getDoc(doc(db, "settings", "store"))).data() || {};
