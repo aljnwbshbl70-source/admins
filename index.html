@@ -36,7 +36,7 @@
 [hidden] { display: none !important; }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { background: var(--bg); font-size: 15px; scroll-behavior: smooth; }
+html { background: var(--bg); font-size: 13.5px; scroll-behavior: smooth; }
 body { margin: 0; color: var(--ink); background: var(--bg); font-family: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
 
 h1, h2, h3, h4 { font-weight: 700; line-height: 1.3; margin: 0 0 10px; color: var(--ink); }
@@ -69,14 +69,15 @@ button.danger:hover { background: var(--bad); color: #fff; }
 .btn.success { color: var(--ok); border-color: var(--ok-bg); background: var(--ok-bg); }
 .btn.success:hover { background: var(--ok); color: #fff; }
 
-.side { position: fixed; top: 0; bottom: 0; right: 0; width: 250px; background: var(--card); border-left: 1px solid var(--line); padding: 20px 12px; overflow-y: auto; z-index: 100; transition: var(--transition); }
+.side { position: fixed; top: 0; bottom: 0; right: 0; width: 210px; background: var(--card); border-left: 1px solid var(--line); padding: 20px 12px; overflow-y: auto; z-index: 100; transition: var(--transition); }
 .side-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding: 0 10px; }
 .side h3 { margin: 0; font-size: 1.15rem; color: var(--accent); }
 .side nav button { display: flex; width: 100%; text-align: right; border: 0; background: none; padding: 12px 14px; margin-bottom: 4px; border-radius: 10px; color: var(--muted); font-weight: 600; justify-content: flex-start; }
 .side nav button:hover { background: var(--bg); color: var(--ink); }
 .side nav button.on { background: var(--accent-light); color: var(--accent); }
 
-.content { margin-right: 250px; padding: 28px; max-width: 1180px; }
+.content { margin-right: 210px; padding: 20px; max-width: 1500px; }
+.grid2>*,.grid3>*{min-width:0}
 .bar { display: none; position: sticky; top: 0; z-index: 90; background: var(--card); border-bottom: 1px solid var(--line); padding: 12px 16px; align-items: center; justify-content: space-between; }
 @media (max-width: 900px) {
   .side { transform: translateX(100%); }
@@ -168,8 +169,8 @@ button.danger:hover { background: var(--bad); color: #fff; }
     <h1>أسطورة العروس</h1>
     <p class="sub">تسجيل الدخول للوحة التحكم والإدارة</p>
     <form id="loginForm">
-      <label for="email">البريد الإلكتروني</label>
-      <input id="email" type="email" autocomplete="username" placeholder="admin@store.com" dir="ltr" required>
+      <label for="email">اسم المستخدم أو البريد</label>
+      <input id="email" type="text" autocomplete="username" placeholder="admin@store.com" dir="ltr" required>
       <label for="password">كلمة المرور</label>
       <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" dir="ltr" required>
       <p id="loginMsg" class="hint" style="color:var(--bad)"></p>
@@ -192,6 +193,9 @@ button.danger:hover { background: var(--bad); color: #fff; }
       <button data-v="prods">🛍️ إدارة المنتجات</button>
       <button data-v="orders">📦 الطلبات والمبيعات</button>
       <button data-v="cats">📁 الأقسام والتصنيفات</button>
+      <button data-v="cust">👥 الزبائن</button>
+      <button data-v="fb">📨 اقتراحات وبلاغات</button>
+      <button data-v="team" class="own" hidden>🔑 فريق الإدارة</button>
       <button data-v="sets">⚙️ إعدادات المتجر</button>
       <button id="themeToggle2" type="button">🌓 تبديل المظهر</button>
       <button id="logout" type="button" style="margin-top:20px; color:var(--bad);" hidden>🚪 خروج</button>
@@ -269,6 +273,11 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <textarea id="p-usage" placeholder="مثال: يوضع بعد الاستحمام على نقاط النبض..."></textarea>
 
         <div class="grid2"><div><label for="p-keywords">كلمات البحث (مثل: عود، بخور)</label><input id="p-keywords"></div><div><label for="p-badge">شارة على المنتج (جديد / خصم / الأكثر طلباً)</label><input id="p-badge" placeholder="اختياري"></div></div>
+        <div class="card" style="margin-top:14px"><h3>📍 مكان المنتج في المحل</h3><div class="grid2">
+          <div><label for="p-branch">الفرع</label><select id="p-branch"><option value="">بدون</option><option>الفرع الأول</option><option>الفرع الثاني</option></select></div>
+          <div><label for="p-locBigF">الصورة الكبيرة للقسم</label><input id="p-locBigF" type="file" accept="image/*"></div>
+          <div><label for="p-locZoomF">الصورة المقرّبة للمنتج</label><input id="p-locZoomF" type="file" accept="image/*"></div></div>
+          <p class="hint">اضغط على الصورة الكبيرة لتحديد مكان الدائرة الحمراء</p><div id="p-locPrev" style="position:relative;max-width:420px;cursor:crosshair"></div></div>
         <label for="p-files">صور المنتج (يمكن اختيار أكثر من صورة)</label>
         <input id="p-files" type="file" accept="image/*" multiple>
         <p class="hint" id="p-imgInfo">يتم الرفع تلقائياً إلى ImgBB. الصورة الأولى تعتبر الرئيسية.</p>
@@ -325,7 +334,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
             <select id="o-status">
               <option value="">جميع الطلبات</option>
               <option value="new">طلبات جديدة</option>
-              <option value="preparing">قيد التجهيز</option>
+              <option value="buying">جاري الشراء</option><option value="bought">تم الشراء</option><option value="preparing">قيد التجهيز</option>
               <option value="delivering">خرج للتوصيل</option>
               <option value="done">تم التسليم والإنهاء</option>
               <option value="cancelled">طلبات ملغاة</option>
@@ -370,6 +379,11 @@ button.danger:hover { background: var(--bad); color: #fff; }
       </div>
     </section>
 
+    <section class="view" id="v-cust" hidden><h1>الزبائن</h1><p class="sub">عدد الطلبات والمشتريات — المميز من طلب 3 مرات فأكثر</p><div class="card"><div id="custList" class="item-list"></div></div></section>
+    <section class="view" id="v-fb" hidden><h1>الاقتراحات والبلاغات</h1><div class="grid2"><div class="card"><h2>💡 الاقتراحات</h2><div id="sugList" class="item-list"></div></div><div class="card"><h2>⚠️ البلاغات</h2><div id="repList" class="item-list"></div></div></div></section>
+    <section class="view" id="v-team" hidden><h1>فريق الإدارة</h1><p class="sub">أنشئ حسابات دخول باسم مستخدم عربي أو إنجليزي. لإيقاف حساب احذفه من Firebase ← Authentication.</p>
+      <form id="tForm" class="card"><div class="grid2"><div><label for="t-user">اسم المستخدم</label><input id="t-user" required></div><div><label for="t-pass">كلمة المرور (6 أحرف فأكثر)</label><input id="t-pass" required minlength="6"></div></div><button class="main" type="submit" style="margin-top:14px">إضافة حساب</button></form>
+      <div class="card"><div id="tList" class="item-list"></div></div></section>
     <section class="view" id="v-sets" hidden>
       <h1>إعدادات المتجر العامة</h1>
       <p class="sub">التحكم ببيانات المتجر والتوصيل والواتساب</p>
@@ -415,13 +429,36 @@ button.danger:hover { background: var(--bad); color: #fff; }
           <div><label for="x-heroTitle">عنوان الواجهة</label><input id="x-heroTitle" placeholder="أهلاً بك في أسطورة العروس"></div>
           <div><label for="x-heroSub">النص تحت العنوان</label><input id="x-heroSub" placeholder="اختاري منتجاتك واطلبي مباشرة"></div>
           <div><label for="x-color">لون المتجر الرئيسي</label><input id="x-color" type="color" value="#8e2a52" style="height:46px;padding:4px"></div>
-          <div><label for="x-cols">عدد المنتجات في الصف (جوال)</label><select id="x-cols"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></div>
+          <div><label for="x-cols">عدد المنتجات في الصف (جوال)</label><select id="x-cols"><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6" selected>6</option></select></div>
           <div><label for="x-locMode">طلب موقع الزبون</label><select id="x-locMode"><option value="optional">اختياري</option><option value="required">إجباري</option><option value="off">بدون</option></select></div>
           <div><label for="x-msgPrefix">عنوان رسالة الواتساب</label><input id="x-msgPrefix" placeholder="🛍️ *طلب جديد*"></div>
           <div><label for="x-footer">نص أسفل الصفحة</label><input id="x-footer" placeholder="جميع الحقوق محفوظة"></div>
           <div><label for="x-insta">رابط انستقرام / سناب</label><input id="x-insta" dir="ltr" placeholder="https://instagram.com/..."></div>
         </div>
 
+        <h2 style="margin-top:24px">🖼️ الشعار والخلفية والثيمات</h2>
+        <div class="grid2">
+          <div><label for="x-logoFile">رفع الشعار</label><input id="x-logoFile" type="file" accept="image/*"><input id="x-logoUrl" dir="ltr" placeholder="رابط الشعار" style="margin-top:6px"></div>
+          <div><label for="x-bgFiles">خلفيات الموقع (حتى 10 صور)</label><input id="x-bgFiles" type="file" accept="image/*" multiple><textarea id="x-bgImages" dir="ltr" placeholder="رابط في كل سطر" style="margin-top:6px;min-height:70px"></textarea></div>
+        </div>
+        <label for="x-themesText">ثيمات إضافية (سطر لكل ثيم: الاسم|#لون)</label>
+        <textarea id="x-themesText" dir="ltr" placeholder="ليلكي|#9b5de5&#10;برتقالي|#e8590c" style="min-height:70px"></textarea>
+
+        <h2 style="margin-top:24px">✈️ تلجرام (استقبال الطلبات)</h2>
+        <div class="grid2">
+          <div><label for="x-tgToken">توكن البوت</label><input id="x-tgToken" dir="ltr" placeholder="123456:ABC..."></div>
+          <div><label for="x-tgChat">معرّف القروب (chat id)</label><input id="x-tgChat" dir="ltr" placeholder="-100123456789"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" id="tgTest" class="secondary small">📨 إرسال رسالة تجربة</button><button type="button" id="tgFind" class="secondary small">🔎 جلب معرف القروب تلقائياً</button></div><p class="hint" id="tgMsg"></p>
+        <label for="x-feeNote">ملاحظة التوصيل لما يقل الطلب عن الحد المجاني</label>
+        <input id="x-feeNote" placeholder="رسوم التوصيل تُتفق مع المندوب حسب الحي (10–20 ر.س داخل حائل)">
+
+        <h2 style="margin-top:24px">👋 عبارات الترحيب</h2>
+        <label for="x-welcomeText">عبارات الترحيب (سطر لكل عبارة، تظهر عشوائياً — اتركها فاضية للعبارات الجاهزة)</label><textarea id="x-welcomeText" style="min-height:90px"></textarea>
+        <label for="x-dhikrText">العبارات الدينية (سطر لكل عبارة)</label><textarea id="x-dhikrText" style="min-height:90px"></textarea>
+        <h2 style="margin-top:24px">📍 أحياء التوصيل</h2>
+        <label for="x-districts">سطر لكل حي بصيغة: الحي|السعر</label><textarea id="x-districts" placeholder="النقرة|10&#10;الخزامى|15" style="min-height:90px"></textarea>
+        <label for="x-ownerEmail">إيميل المالك (يظهر له قسم الفريق)</label><input id="x-ownerEmail" dir="ltr" placeholder="aljnwbshbl70@gmail.com">
         <h2 style="margin-top:24px">🚚 خيارات الطلب</h2>
         <div class="grid2">
           <div><label for="x-freeFrom">توصيل مجاني فوق مبلغ (ر.س)</label><input id="x-freeFrom" type="number" inputmode="decimal" placeholder="مثال: 500"></div>
@@ -442,7 +479,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs, getCountFromServer, query, where, orderBy, limit, startAfter, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -454,6 +491,8 @@ const firebaseConfig = {
   appId: "1:881683077545:web:d5903a9dc5227194174cb8"
 };
 const REQUIRE_LOGIN = true;
+const OWNER_EMAIL = "aljnwbshbl70@gmail.com"; let ownerEmail = OWNER_EMAIL;
+const toEmail = u => u.includes("@") ? u : "u" + [...u].map(c => c.codePointAt(0).toString(16)).join("-") + "@staff.local";
 const IMGBB_KEY = "ecc70a772677138fa33e8029ff4070db";
 
 const app = initializeApp(firebaseConfig);
@@ -463,7 +502,7 @@ const db = getFirestore(app);
 const $ = id => document.getElementById(id);
 const PAGE_SIZE = 20;
 const STATUS_LABELS = { available: "متوفر", soldout: "نافد", hidden: "مخفي" };
-const ORDER_STATUSES = { new: "جديد", preparing: "قيد التجهيز", delivering: "في الطريق", done: "تم التسليم", cancelled: "ملغي" };
+const ORDER_STATUSES = { new: "جديد", buying: "جاري الشراء", bought: "تم الشراء", preparing: "قيد التجهيز", delivering: "في الطريق", done: "تم التسليم", cancelled: "ملغي" };
 const UNITS = ["مل", "لتر", "جرام", "كيلو", "حبة", "عبوة", "كرتون", "طقم", "تولة", "أونصة"];
 const NO_IMG = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#e4dce8"/><text x="60" y="66" font-size="14" text-anchor="middle" fill="#8a7d92" font-family="sans-serif">بدون صورة</text></svg>');
 
@@ -525,6 +564,9 @@ function go(viewName) {
   if (viewName === "prods") loadProducts(true);
   if (viewName === "orders") loadOrders(true);
   if (viewName === "sets") loadSettings();
+  if (viewName === "cust") loadCust();
+  if (viewName === "fb") loadFb();
+  if (viewName === "team") loadTeam();
 }
 
 $("nav").addEventListener("click", e => {
@@ -548,6 +590,8 @@ async function initApp() {
   $("shell").hidden = false;
   if (appStarted) return;
   appStarted = true;
+  try { ownerEmail = (await getDoc(doc(db, "settings", "store"))).data()?.ownerEmail || OWNER_EMAIL; } catch { ownerEmail = OWNER_EMAIL; }
+  const isOwner = auth.currentUser?.email === ownerEmail; document.querySelectorAll(".own").forEach(b => b.hidden = !isOwner);
   let first = true;
   onSnapshot(query(collection(db, "orders"), where("status", "==", "new")), snap => {
     $("tile-new").textContent = snap.size; $("tile-new").hidden = !snap.size;
@@ -569,7 +613,7 @@ if (REQUIRE_LOGIN) {
     e.preventDefault();
     $("loginMsg").textContent = "جارٍ تسجيل الدخول...";
     try {
-      await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
+      await signInWithEmailAndPassword(auth, toEmail($("email").value.trim()), $("password").value);
       $("loginMsg").textContent = "";
     } catch (err) {
       $("loginMsg").textContent = "خطأ في البريد أو كلمة المرور";
@@ -887,7 +931,7 @@ function addFlavorRow(data = {}) {
   nameInput.placeholder = "اسم النكهة / الرائحة";
   nameInput.value = data.name || "";
   const extraInput = document.createElement("input");
-  extraInput.placeholder = "سعر إضافي (اختياري)";
+  extraInput.placeholder = "سعر هذا الخيار (اختياري)";
   extraInput.type = "number";
   extraInput.step = "any";
   extraInput.value = data.extraPrice ?? 0;
@@ -948,6 +992,17 @@ $("p-files").addEventListener("change", async e => {
   showToast(ok ? "تمت إضافة الصور للمعرض" : "لم تُرفع أي صورة", !ok);
 });
 
+let locState = { big: "", zoom: "", x: 50, y: 50 };
+function renderLoc() {
+  const b = $("p-locPrev"); b.replaceChildren(); if (!locState.big) return;
+  const im = document.createElement("img"); im.src = locState.big; im.style.cssText = "width:100%;border-radius:12px;display:block";
+  const dot = createElement("i"); dot.style.cssText = `position:absolute;width:40px;height:40px;border:3px solid #e03131;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;left:${locState.x}%;top:${locState.y}%`;
+  b.append(im, dot);
+  if (locState.zoom) { const z = document.createElement("img"); z.src = locState.zoom; z.style.cssText = "position:absolute;bottom:8px;left:8px;width:38%;border:3px solid #e03131;border-radius:12px;pointer-events:none"; b.append(z); }
+  im.onclick = e => { const r = im.getBoundingClientRect(); locState.x = Math.round((e.clientX - r.left) / r.width * 100); locState.y = Math.round((e.clientY - r.top) / r.height * 100); renderLoc(); };
+}
+$("p-locBigF").addEventListener("change", async e => { const u = await uploadImageToServer(e.target.files[0]); if (u) { locState.big = u; renderLoc(); } e.target.value = ""; });
+$("p-locZoomF").addEventListener("change", async e => { const u = await uploadImageToServer(e.target.files[0]); if (u) { locState.zoom = u; renderLoc(); } e.target.value = ""; });
 function openForm(product = null) {
   editProdId = product ? product.id : null;
   currentImages = [...(product?.images || [])];
@@ -960,6 +1015,7 @@ function openForm(product = null) {
   $("p-status").value = product?.status || "available";
   $("p-featured").checked = !!product?.featured;
   $("p-keywords").value = product?.keywords || ""; $("p-badge").value = product?.badge || "";
+  locState = { big: "", zoom: "", x: 50, y: 50, ...(product?.loc || {}) }; $("p-branch").value = product?.loc?.branch || ""; renderLoc();
   $("p-imgInfo").textContent = "يتم الرفع تلقائياً إلى ImgBB. الصورة الأولى تعتبر الرئيسية.";
 
   $("sizesContainer").replaceChildren();
@@ -994,6 +1050,7 @@ $("pForm").addEventListener("submit", async e => {
     flavors: readFlavorsFromUI(),
     minPrice: Math.min(...sizes.map(s => s.price)),
     keywords: $("p-keywords").value.trim(), badge: $("p-badge").value.trim(),
+    loc: ($("p-branch").value || locState.big) ? { branch: $("p-branch").value, big: locState.big, zoom: locState.zoom, x: locState.x, y: locState.y } : null,
     status: $("p-status").value,
     featured: $("p-featured").checked,
     updatedAt: serverTimestamp()
@@ -1194,8 +1251,51 @@ function showOrderDetailsModal(ord) {
   showModal(nodes);
 }
 
+async function loadCust() {
+  const box = $("custList"); box.replaceChildren(createElement("p", "جارٍ التحميل...", "hint"));
+  try {
+    const [os, cs] = await Promise.all([getDocs(collection(db, "orders")), getDocs(collection(db, "customers"))]);
+    const m = {}; cs.docs.forEach(d => { m[d.id] = { name: d.data().name, n: 0, sum: 0 }; });
+    os.docs.forEach(d => { const o = d.data(), k = o.phone || "—"; if (!m[k]) m[k] = { name: o.customerName, n: 0, sum: 0 }; m[k].n++; if (o.status !== "cancelled") m[k].sum += Number(o.total) || 0; });
+    const l = Object.entries(m).sort((a, b) => b[1].n - a[1].n);
+    box.replaceChildren(...(l.length ? l.map(([ph, c], i) => { const r = createElement("div", "", "item"), inf = createElement("div", "", "info");
+      inf.append(createElement("b", `${i === 0 && c.n ? "🏆 " : ""}${c.name || "زبون"} ${c.n >= 3 ? "⭐ مميز" : ""}`), createElement("div", `📞 ${ph} • ${c.n} طلب • ${c.sum} ر.س`, "meta")); r.append(inf); return r; }) : [createElement("p", "لا يوجد زبائن بعد.", "hint")]));
+  } catch (e) { showToast("تعذر التحميل: " + e.message, true); }
+}
+async function loadFb() {
+  for (const [col, id] of [["suggestions", "sugList"], ["reports", "repList"]]) {
+    const box = $(id);
+    try { const s = await getDocs(collection(db, col)); const l = s.docs.sort((a, b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0));
+      box.replaceChildren(...(l.length ? l.map(d => { const x = d.data(), r = createElement("div", "", "item"), inf = createElement("div", "", "info");
+        inf.append(createElement("b", x.name || "زائر"), createElement("div", x.text, "meta")); inf.querySelector(".meta").style.whiteSpace = "pre-wrap";
+        r.append(inf, createButton("حذف", async () => { await deleteDoc(doc(db, col, d.id)); loadFb(); }, "danger")); return r; }) : [createElement("p", "لا يوجد.", "hint")]));
+    } catch (e) { showToast("تعذر التحميل", true); }
+  }
+}
+async function loadTeam() {
+  try { const s = await getDocs(collection(db, "staff"));
+    $("tList").replaceChildren(...(s.docs.length ? s.docs.map(d => { const r = createElement("div", "", "item"), inf = createElement("div", "", "info"); inf.append(createElement("b", "🔑 " + d.data().username));
+      r.append(inf, createButton("إزالة من القائمة", async () => { await deleteDoc(doc(db, "staff", d.id)); loadTeam(); }, "danger")); return r; }) : [createElement("p", "لا توجد حسابات إضافية.", "hint")]));
+  } catch (e) { showToast("تعذر التحميل", true); }
+}
+$("tForm").addEventListener("submit", async e => {
+  e.preventDefault(); const u = $("t-user").value.trim(), p = $("t-pass").value;
+  try { const sec = initializeApp(firebaseConfig, "sec" + Date.now()); await createUserWithEmailAndPassword(getAuth(sec), toEmail(u), p);
+    await addDoc(collection(db, "staff"), { username: u, email: toEmail(u), createdAt: serverTimestamp() }); showToast("تم إنشاء الحساب"); $("tForm").reset(); loadTeam();
+  } catch (err) { showToast("تعذر الإنشاء: " + err.message, true); }
+});
 /* ---------- الإعدادات ---------- */
-const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"]];
+const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["tgToken","t"],["tgChat","t"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"]];
+$("x-logoFile").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; const u = await uploadImageToServer(f); if (u) { $("x-logoUrl").value = u; showToast("تم رفع الشعار — اضغط حفظ"); } e.target.value = ""; });
+$("x-bgFiles").addEventListener("change", async e => { const t = $("x-bgImages"), n = t.value.split("\n").map(x => x.trim()).filter(Boolean); for (const f of [...e.target.files]) { if (n.length >= 10) break; const u = await uploadImageToServer(f); if (u) n.push(u); } t.value = n.join("\n"); e.target.value = ""; showToast("تم رفع الخلفيات — اضغط حفظ"); });
+$("tgFind").addEventListener("click", async () => { const t = $("x-tgToken").value.trim(); if (!t) return showToast("أدخل التوكن أولاً", true);
+  try { const r = await (await fetch(`https://api.telegram.org/bot${t}/getUpdates`)).json(); if (!r.ok) throw new Error(r.description);
+    const c = [...r.result].reverse().map(u => (u.message || u.channel_post || u.my_chat_member)?.chat).find(Boolean);
+    if (!c) { $("tgMsg").textContent = "أضف البوت للقروب واكتب فيه رسالة ثم أعد المحاولة"; return; } $("x-tgChat").value = c.id; $("tgMsg").textContent = "تم جلب: " + (c.title || c.id) + " — اضغط حفظ";
+  } catch (e) { $("tgMsg").textContent = "فشل: " + e.message; } });
+$("tgTest").addEventListener("click", async () => { const t = $("x-tgToken").value.trim(), c = $("x-tgChat").value.trim();
+  try { const r = await (await fetch(`https://api.telegram.org/bot${t}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: c, text: "✅ رسالة تجربة من لوحة الإدارة" }) })).json();
+    $("tgMsg").textContent = r.ok ? "✅ وصلت الرسالة للقروب" : "❌ " + r.description; } catch (e) { $("tgMsg").textContent = "❌ " + e.message; } });
 async function loadSettings() {
   try {
     const data = (await getDoc(doc(db, "settings", "store"))).data() || {};
