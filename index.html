@@ -383,7 +383,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
     <section class="view" id="v-cust" hidden><h1>الزبائن</h1><p class="sub">عدد الطلبات والمشتريات — المميز من طلب 3 مرات فأكثر</p><div class="card"><div id="custList" class="item-list"></div></div></section>
     <section class="view" id="v-fb" hidden><h1>الاقتراحات والبلاغات</h1><div class="grid2"><div class="card"><h2>💡 الاقتراحات</h2><div id="sugList" class="item-list"></div></div><div class="card"><h2>⚠️ البلاغات</h2><div id="repList" class="item-list"></div></div><div class="card"><h2>💬 التعليقات (احذف أي تعليق)</h2><div id="cmList" class="item-list"></div></div></div></section>
     <section class="view" id="v-team" hidden><h1>فريق الإدارة</h1><p class="sub">أنشئ حسابات دخول باسم مستخدم عربي أو إنجليزي. لإيقاف حساب احذفه من Firebase ← Authentication.</p>
-      <form id="tForm" class="card"><div class="grid2"><div><label for="t-user">اسم المستخدم</label><input id="t-user" required></div><div><label for="t-pass">كلمة المرور (6 أحرف فأكثر)</label><input id="t-pass" required minlength="6"></div></div><button class="main" type="submit" style="margin-top:14px">إضافة حساب</button></form>
+      <form id="tForm" class="card"><div class="grid2"><div><label for="t-user">اسم المستخدم</label><input id="t-user" required></div><div><label for="t-pass">كلمة المرور (6 أحرف فأكثر)</label><input id="t-pass" required minlength="6"></div><div><label for="t-role">نوع الحساب</label><select id="t-role"><option value="courier">🚚 مندوب توصيل (لا يدخل الإدارة)</option><option value="admin">🔑 إداري</option></select></div></div><button class="main" type="submit" style="margin-top:14px">إضافة حساب</button></form>
       <div class="card"><div id="tList" class="item-list"></div></div></section>
     <section class="view" id="v-sets" hidden>
       <h1>إعدادات المتجر العامة</h1>
@@ -463,6 +463,8 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <h2 style="margin-top:24px">📍 أحياء التوصيل</h2>
         <label for="x-districts">سطر لكل حي بصيغة: الحي|السعر</label><textarea id="x-districts" placeholder="النقرة|10&#10;الخزامى|15" style="min-height:90px"></textarea>
         <label for="x-ownerEmail">إيميل المالك (يظهر له قسم الفريق)</label><input id="x-ownerEmail" dir="ltr" placeholder="aljnwbshbl70@gmail.com">
+        <h2 style="margin-top:24px">🌟 العميل المميز</h2>
+        <div class="grid2"><div><label for="x-vipOrders">عدد الطلبات ليصير مميزاً</label><input id="x-vipOrders" type="number" placeholder="مثال: 5"></div><div><label for="x-vipPercent">نسبة الخصم التلقائي %</label><input id="x-vipPercent" type="number" placeholder="مثال: 10"></div></div>
         <h2 style="margin-top:24px">🚚 خيارات الطلب</h2>
         <div class="grid2">
           <div><label for="x-freeFrom">توصيل مجاني فوق مبلغ (ر.س)</label><input id="x-freeFrom" type="number" inputmode="decimal" placeholder="مثال: 500"></div>
@@ -608,8 +610,8 @@ async function initApp() {
 
 if (REQUIRE_LOGIN) {
   $("logout").hidden = false;
-  onAuthStateChanged(auth, u => {
-    if (u) initApp();
+  onAuthStateChanged(auth, async u => {
+    if (u) { try { const r = await getDocs(query(collection(db, "staff"), where("email", "==", u.email))); if (r.docs.some(d => d.data().role === "courier")) { await signOut(auth); $("loginMsg").textContent = "هذا حساب مندوب ولا يدخل الإدارة"; return; } } catch {} initApp(); }
     else { appStarted = false; $("shell").hidden = true; $("loginBox").hidden = false; }
   });
 
@@ -1272,25 +1274,26 @@ async function loadFb() {
     const box = $(id);
     try { const s = await getDocs(collection(db, col)); const l = s.docs.sort((a, b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0));
       box.replaceChildren(...(l.length ? l.map(d => { const x = d.data(), r = createElement("div", "", "item"), inf = createElement("div", "", "info");
-        inf.append(createElement("b", x.name || "زائر"), createElement("div", (x.type === "product" ? "🛍️ منتج مقترح: " : "") + x.text + (x.image ? "\n" + x.image : ""), "meta")); inf.querySelector(".meta").style.whiteSpace = "pre-wrap";
-        r.append(inf, createButton("حذف", async () => { await deleteDoc(doc(db, col, d.id)); loadFb(); }, "danger")); return r; }) : [createElement("p", "لا يوجد.", "hint")]));
+        inf.append(createElement("b", x.name || "زائر"), createElement("div", (x.pname ? "على منتج: " + x.pname + "\n" : "") + (x.type === "product" ? "🛍️ منتج مقترح: " : "") + x.text + (x.image ? "\n" + x.image : ""), "meta")); inf.querySelector(".meta").style.whiteSpace = "pre-wrap"; if (x.reply) inf.append(createElement("div", "↩️ " + x.reply, "meta"));
+        r.append(inf, createButton("رد", async () => { const t = prompt("اكتب الرد (يشوفه العميل):", x.reply || ""); if (t !== null) { await updateDoc(doc(db, col, d.id), { reply: t.trim() }); loadFb(); } }), createButton("حذف", async () => { await deleteDoc(doc(db, col, d.id)); loadFb(); }, "danger")); return r; }) : [createElement("p", "لا يوجد.", "hint")]));
     } catch (e) { showToast("تعذر التحميل", true); }
   }
 }
 async function loadTeam() {
-  try { const s = await getDocs(collection(db, "staff"));
-    $("tList").replaceChildren(...(s.docs.length ? s.docs.map(d => { const r = createElement("div", "", "item"), inf = createElement("div", "", "info"); inf.append(createElement("b", "🔑 " + d.data().username));
+  try { const rat = {}; (await getDocs(collection(db, "orders"))).docs.forEach(o => { const x = o.data(); if (x.courier && x.rating) (rat[x.courier] ??= []).push(x.rating); });
+    const rt = n => rat[n] ? ` — ⭐ ${(rat[n].reduce((a, b) => a + b, 0) / rat[n].length).toFixed(1)} (${rat[n].length} تقييم)` : ""; const s = await getDocs(collection(db, "staff"));
+    $("tList").replaceChildren(...(s.docs.length ? s.docs.map(d => { const r = createElement("div", "", "item"), inf = createElement("div", "", "info"); inf.append(createElement("b", (d.data().role === "courier" ? "🚚 " : "🔑 ") + d.data().username + rt(d.data().username)));
       r.append(inf, createButton("إزالة من القائمة", async () => { await deleteDoc(doc(db, "staff", d.id)); loadTeam(); }, "danger")); return r; }) : [createElement("p", "لا توجد حسابات إضافية.", "hint")]));
   } catch (e) { showToast("تعذر التحميل", true); }
 }
 $("tForm").addEventListener("submit", async e => {
   e.preventDefault(); const u = $("t-user").value.trim(), p = $("t-pass").value;
-  try { const sec = initializeApp(firebaseConfig, "sec" + Date.now()); await createUserWithEmailAndPassword(getAuth(sec), toEmail(u), p);
-    await addDoc(collection(db, "staff"), { username: u, email: toEmail(u), createdAt: serverTimestamp() }); showToast("تم إنشاء الحساب"); $("tForm").reset(); loadTeam();
+  try { const sec = initializeApp(firebaseConfig, "sec" + Date.now()); const cred = await createUserWithEmailAndPassword(getAuth(sec), toEmail(u), p);
+    await setDoc(doc(db, "staff", cred.user.uid), { username: u, role: $("t-role").value, email: toEmail(u), createdAt: serverTimestamp() }); showToast("تم إنشاء الحساب"); $("tForm").reset(); loadTeam();
   } catch (err) { showToast("تعذر الإنشاء: " + err.message, true); }
 });
 /* ---------- الإعدادات ---------- */
-const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["tgToken","t"],["tgChat","t"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"]];
+const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["tgToken","t"],["tgChat","t"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"],["vipOrders","t"],["vipPercent","t"]];
 $("x-logoFile").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; const u = await uploadImageToServer(f); if (u) { $("x-logoUrl").value = u; showToast("تم رفع الشعار — اضغط حفظ"); } e.target.value = ""; });
 $("x-bgFiles").addEventListener("change", async e => { const t = $("x-bgImages"), n = t.value.split("\n").map(x => x.trim()).filter(Boolean); for (const f of [...e.target.files]) { if (n.length >= 10) break; const u = await uploadImageToServer(f); if (u) n.push(u); } t.value = n.join("\n"); e.target.value = ""; showToast("تم رفع الخلفيات — اضغط حفظ"); });
 async function compress(file, max = 1280, q = 0.8) {
