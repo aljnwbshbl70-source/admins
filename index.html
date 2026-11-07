@@ -273,6 +273,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <textarea id="p-usage" placeholder="مثال: يوضع بعد الاستحمام على نقاط النبض..."></textarea>
 
         <div class="grid2"><div><label for="p-keywords">كلمات البحث (مثل: عود، بخور)</label><input id="p-keywords"></div><div><label for="p-badge">شارة على المنتج (جديد / خصم / الأكثر طلباً)</label><input id="p-badge" placeholder="اختياري"></div></div>
+        <div class="grid2" style="margin-top:14px"><div><label for="p-oldPrice">السعر قبل الخصم (للعروض)</label><input id="p-oldPrice" type="number" step="any"></div><div><label class="check" style="margin-top:36px"><input id="p-offer" type="checkbox"> ضمن العروض</label></div></div>
         <div class="card" style="margin-top:14px"><h3>📍 مكان المنتج في المحل</h3><div class="grid2">
           <div><label for="p-branch">الفرع</label><select id="p-branch"><option value="">بدون</option><option>الفرع الأول</option><option>الفرع الثاني</option></select></div>
           <div><label for="p-locBigF">الصورة الكبيرة للقسم</label><input id="p-locBigF" type="file" accept="image/*"></div>
@@ -380,7 +381,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
     </section>
 
     <section class="view" id="v-cust" hidden><h1>الزبائن</h1><p class="sub">عدد الطلبات والمشتريات — المميز من طلب 3 مرات فأكثر</p><div class="card"><div id="custList" class="item-list"></div></div></section>
-    <section class="view" id="v-fb" hidden><h1>الاقتراحات والبلاغات</h1><div class="grid2"><div class="card"><h2>💡 الاقتراحات</h2><div id="sugList" class="item-list"></div></div><div class="card"><h2>⚠️ البلاغات</h2><div id="repList" class="item-list"></div></div></div></section>
+    <section class="view" id="v-fb" hidden><h1>الاقتراحات والبلاغات</h1><div class="grid2"><div class="card"><h2>💡 الاقتراحات</h2><div id="sugList" class="item-list"></div></div><div class="card"><h2>⚠️ البلاغات</h2><div id="repList" class="item-list"></div></div><div class="card"><h2>💬 التعليقات (احذف أي تعليق)</h2><div id="cmList" class="item-list"></div></div></div></section>
     <section class="view" id="v-team" hidden><h1>فريق الإدارة</h1><p class="sub">أنشئ حسابات دخول باسم مستخدم عربي أو إنجليزي. لإيقاف حساب احذفه من Firebase ← Authentication.</p>
       <form id="tForm" class="card"><div class="grid2"><div><label for="t-user">اسم المستخدم</label><input id="t-user" required></div><div><label for="t-pass">كلمة المرور (6 أحرف فأكثر)</label><input id="t-pass" required minlength="6"></div></div><button class="main" type="submit" style="margin-top:14px">إضافة حساب</button></form>
       <div class="card"><div id="tList" class="item-list"></div></div></section>
@@ -453,6 +454,9 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <label for="x-feeNote">ملاحظة التوصيل لما يقل الطلب عن الحد المجاني</label>
         <input id="x-feeNote" placeholder="رسوم التوصيل تُتفق مع المندوب حسب الحي (10–20 ر.س داخل حائل)">
 
+        <h2 style="margin-top:24px">🗜️ ضغط الصور القديمة</h2>
+        <p class="hint">يضغط كل الصور الأكبر من 250 كيلو (منتجات، أقسام، شعار، خلفيات) ويعيد رفعها ويحدّث الروابط. اتركه يكمل ولا تسكّر الصفحة.</p>
+        <button type="button" id="rcBtn" class="secondary">ابدأ ضغط الصور القديمة</button><p class="hint" id="rcMsg"></p>
         <h2 style="margin-top:24px">👋 عبارات الترحيب</h2>
         <label for="x-welcomeText">عبارات الترحيب (سطر لكل عبارة، تظهر عشوائياً — اتركها فاضية للعبارات الجاهزة)</label><textarea id="x-welcomeText" style="min-height:90px"></textarea>
         <label for="x-dhikrText">العبارات الدينية (سطر لكل عبارة)</label><textarea id="x-dhikrText" style="min-height:90px"></textarea>
@@ -629,7 +633,7 @@ async function uploadImageToServer(file) {
   if (!file) return "";
   if (file.size > 30 * 1024 * 1024) { showToast("الصورة كبيرة جداً: " + file.name, true); return ""; }
   const formData = new FormData();
-  formData.append("image", file);
+  formData.append("image", await compress(file), "img.jpg");
   try {
     const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
     const data = await res.json();
@@ -998,7 +1002,7 @@ function renderLoc() {
   const im = document.createElement("img"); im.src = locState.big; im.style.cssText = "width:100%;border-radius:12px;display:block";
   const dot = createElement("i"); dot.style.cssText = `position:absolute;width:40px;height:40px;border:3px solid #e03131;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;left:${locState.x}%;top:${locState.y}%`;
   b.append(im, dot);
-  if (locState.zoom) { const z = document.createElement("img"); z.src = locState.zoom; z.style.cssText = "position:absolute;bottom:8px;left:8px;width:38%;border:3px solid #e03131;border-radius:12px;pointer-events:none"; b.append(z); }
+  if (locState.zoom) { const z = document.createElement("img"); z.src = locState.zoom; z.style.cssText = `position:absolute;width:26%;aspect-ratio:1;object-fit:cover;border:3px solid #e03131;border-radius:8px;pointer-events:none;left:${locState.x > 55 ? `calc(${locState.x}% - 26% - 28px)` : `calc(${locState.x}% + 28px)`};top:${Math.max(2, Math.min(locState.y - 12, 68))}%`; b.append(z); }
   im.onclick = e => { const r = im.getBoundingClientRect(); locState.x = Math.round((e.clientX - r.left) / r.width * 100); locState.y = Math.round((e.clientY - r.top) / r.height * 100); renderLoc(); };
 }
 $("p-locBigF").addEventListener("change", async e => { const u = await uploadImageToServer(e.target.files[0]); if (u) { locState.big = u; renderLoc(); } e.target.value = ""; });
@@ -1015,6 +1019,7 @@ function openForm(product = null) {
   $("p-status").value = product?.status || "available";
   $("p-featured").checked = !!product?.featured;
   $("p-keywords").value = product?.keywords || ""; $("p-badge").value = product?.badge || "";
+  $("p-oldPrice").value = product?.oldPrice || ""; $("p-offer").checked = !!product?.offer;
   locState = { big: "", zoom: "", x: 50, y: 50, ...(product?.loc || {}) }; $("p-branch").value = product?.loc?.branch || ""; renderLoc();
   $("p-imgInfo").textContent = "يتم الرفع تلقائياً إلى ImgBB. الصورة الأولى تعتبر الرئيسية.";
 
@@ -1049,7 +1054,7 @@ $("pForm").addEventListener("submit", async e => {
     sizes,
     flavors: readFlavorsFromUI(),
     minPrice: Math.min(...sizes.map(s => s.price)),
-    keywords: $("p-keywords").value.trim(), badge: $("p-badge").value.trim(),
+    keywords: $("p-keywords").value.trim(), badge: $("p-badge").value.trim(), oldPrice: Number($("p-oldPrice").value) || 0, offer: $("p-offer").checked,
     loc: ($("p-branch").value || locState.big) ? { branch: $("p-branch").value, big: locState.big, zoom: locState.zoom, x: locState.x, y: locState.y } : null,
     status: $("p-status").value,
     featured: $("p-featured").checked,
@@ -1255,19 +1260,19 @@ async function loadCust() {
   const box = $("custList"); box.replaceChildren(createElement("p", "جارٍ التحميل...", "hint"));
   try {
     const [os, cs] = await Promise.all([getDocs(collection(db, "orders")), getDocs(collection(db, "customers"))]);
-    const m = {}; cs.docs.forEach(d => { m[d.id] = { name: d.data().name, n: 0, sum: 0 }; });
+    const m = {}; cs.docs.forEach(d => { m[d.data().phone || d.id] = { name: d.data().name, uid: d.id, n: 0, sum: 0 }; });
     os.docs.forEach(d => { const o = d.data(), k = o.phone || "—"; if (!m[k]) m[k] = { name: o.customerName, n: 0, sum: 0 }; m[k].n++; if (o.status !== "cancelled") m[k].sum += Number(o.total) || 0; });
     const l = Object.entries(m).sort((a, b) => b[1].n - a[1].n);
     box.replaceChildren(...(l.length ? l.map(([ph, c], i) => { const r = createElement("div", "", "item"), inf = createElement("div", "", "info");
-      inf.append(createElement("b", `${i === 0 && c.n ? "🏆 " : ""}${c.name || "زبون"} ${c.n >= 3 ? "⭐ مميز" : ""}`), createElement("div", `📞 ${ph} • ${c.n} طلب • ${c.sum} ر.س`, "meta")); r.append(inf); return r; }) : [createElement("p", "لا يوجد زبائن بعد.", "hint")]));
+      inf.append(createElement("b", `${i === 0 && c.n ? "🏆 " : ""}${c.name || "زبون"} ${c.n >= 3 ? "⭐ مميز" : ""}`), createElement("div", `📞 ${ph} • ${c.n} طلب • ${c.sum} ر.س`, "meta")); r.append(inf); if (c.uid) r.append(createButton("حذف", async () => { if (confirm("حذف هذا العميل نهائياً؟")) { await deleteDoc(doc(db, "customers", c.uid)); loadCust(); } }, "danger")); return r; }) : [createElement("p", "لا يوجد زبائن بعد.", "hint")]));
   } catch (e) { showToast("تعذر التحميل: " + e.message, true); }
 }
 async function loadFb() {
-  for (const [col, id] of [["suggestions", "sugList"], ["reports", "repList"]]) {
+  for (const [col, id] of [["suggestions", "sugList"], ["reports", "repList"], ["comments", "cmList"]]) {
     const box = $(id);
     try { const s = await getDocs(collection(db, col)); const l = s.docs.sort((a, b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0));
       box.replaceChildren(...(l.length ? l.map(d => { const x = d.data(), r = createElement("div", "", "item"), inf = createElement("div", "", "info");
-        inf.append(createElement("b", x.name || "زائر"), createElement("div", x.text, "meta")); inf.querySelector(".meta").style.whiteSpace = "pre-wrap";
+        inf.append(createElement("b", x.name || "زائر"), createElement("div", (x.type === "product" ? "🛍️ منتج مقترح: " : "") + x.text + (x.image ? "\n" + x.image : ""), "meta")); inf.querySelector(".meta").style.whiteSpace = "pre-wrap";
         r.append(inf, createButton("حذف", async () => { await deleteDoc(doc(db, col, d.id)); loadFb(); }, "danger")); return r; }) : [createElement("p", "لا يوجد.", "hint")]));
     } catch (e) { showToast("تعذر التحميل", true); }
   }
@@ -1288,6 +1293,44 @@ $("tForm").addEventListener("submit", async e => {
 const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["tgToken","t"],["tgChat","t"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"]];
 $("x-logoFile").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; const u = await uploadImageToServer(f); if (u) { $("x-logoUrl").value = u; showToast("تم رفع الشعار — اضغط حفظ"); } e.target.value = ""; });
 $("x-bgFiles").addEventListener("change", async e => { const t = $("x-bgImages"), n = t.value.split("\n").map(x => x.trim()).filter(Boolean); for (const f of [...e.target.files]) { if (n.length >= 10) break; const u = await uploadImageToServer(f); if (u) n.push(u); } t.value = n.join("\n"); e.target.value = ""; showToast("تم رفع الخلفيات — اضغط حفظ"); });
+async function compress(file, max = 1280, q = 0.8) {
+  try {
+    const bmp = await createImageBitmap(file), k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    const x = c.getContext("2d"); x.drawImage(bmp, 0, 0, c.width, c.height);
+    let b = await new Promise(r => c.toBlob(r, "image/webp", q));
+    if (!b || b.type !== "image/webp") { x.globalCompositeOperation = "destination-over"; x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); b = await new Promise(r => c.toBlob(r, "image/jpeg", q)); }
+    return b && b.size < file.size ? b : file;
+  } catch { return file; }
+}
+async function recompressAll() {
+  const log = $("rcMsg"); let saved = 0, failed = 0, changed = 0;
+  const redo = async url => {
+    if (!url || !/^https?:/.test(url)) return url;
+    try {
+      const blob = await (await fetch(url)).blob(); if (blob.size < 250 * 1024) return url;
+      const f = await compress(new File([blob], "x", { type: blob.type })); if (f.size >= blob.size * 0.8) return url;
+      const nu = await uploadImageToServer(f); if (nu) { saved += blob.size - f.size; changed++; return nu; }
+    } catch { failed++; }
+    return url;
+  };
+  const say = t => { log.textContent = `${t} — وفّرت ${(saved / 1048576).toFixed(1)} ميجا`; };
+  try {
+    const ps = await getDocs(collection(db, "products")); let n = 0;
+    for (const d of ps.docs) { const p = d.data(), up = {}, imgs = [];
+      for (const u of p.images || []) imgs.push(await redo(u)); if (imgs.some((u, i) => u !== p.images[i])) up.images = imgs;
+      if (p.loc) { const big = await redo(p.loc.big), zoom = await redo(p.loc.zoom); if (big !== p.loc.big || zoom !== p.loc.zoom) up.loc = { ...p.loc, big, zoom }; }
+      if (Object.keys(up).length) await updateDoc(d.ref, up); say(`المنتجات ${++n}/${ps.size}`); }
+    const cs = await getDocs(collection(db, "categories")); n = 0;
+    for (const d of cs.docs) { const u = await redo(d.data().image); if (u !== d.data().image) await updateDoc(d.ref, { image: u }); say(`الأقسام ${++n}/${cs.size}`); }
+    const sd = doc(db, "settings", "store"), sv = (await getDoc(sd)).data() || {}, up = {};
+    if (sv.logoUrl) { const u = await redo(sv.logoUrl); if (u !== sv.logoUrl) up.logoUrl = u; }
+    if (sv.bgImages) { const l = []; for (const u of sv.bgImages.split("\n").map(x => x.trim()).filter(Boolean)) l.push(await redo(u)); up.bgImages = l.join("\n"); }
+    if (Object.keys(up).length) await updateDoc(sd, up);
+    log.textContent = failed && !changed ? "❌ المتصفح منع قراءة الصور القديمة، ما قدرت أضغطها" : `✅ تم: ضغطت ${changed} صورة، ووفّرت ${(saved / 1048576).toFixed(1)} ميجا` + (failed ? ` (تعذرت ${failed})` : "");
+  } catch (e) { log.textContent = "❌ " + e.message; }
+}
+$("rcBtn").addEventListener("click", () => { if (confirm("سيتم ضغط الصور الكبيرة وإعادة رفعها وتحديث روابطها. تبدأ؟")) recompressAll(); });
 $("tgFind").addEventListener("click", async () => { const t = $("x-tgToken").value.trim(); if (!t) return showToast("أدخل التوكن أولاً", true);
   try { const r = await (await fetch(`https://api.telegram.org/bot${t}/getUpdates`)).json(); if (!r.ok) throw new Error(r.description);
     const c = [...r.result].reverse().map(u => (u.message || u.channel_post || u.my_chat_member)?.chat).find(Boolean);
