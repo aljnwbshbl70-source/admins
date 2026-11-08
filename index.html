@@ -432,7 +432,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
           <div><label for="x-color">لون المتجر الرئيسي</label><input id="x-color" type="color" value="#8e2a52" style="height:46px;padding:4px"></div>
           <div><label for="x-cols">عدد المنتجات في الصف (جوال)</label><select id="x-cols"><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6" selected>6</option></select></div>
           <div><label for="x-locMode">طلب موقع الزبون</label><select id="x-locMode"><option value="optional">اختياري</option><option value="required">إجباري</option><option value="off">بدون</option></select></div>
-          <div><label for="x-msgPrefix">عنوان رسالة الواتساب</label><input id="x-msgPrefix" placeholder="🛍️ *طلب جديد*"></div>
+          <div><label for="x-msgPrefix">عنوان رسالة الطلب (قروب المندوبين)</label><input id="x-msgPrefix" placeholder="🛍️ *طلب جديد*"></div>
           <div><label for="x-footer">نص أسفل الصفحة</label><input id="x-footer" placeholder="جميع الحقوق محفوظة"></div>
           <div><label for="x-insta">رابط انستقرام / سناب</label><input id="x-insta" dir="ltr" placeholder="https://instagram.com/..."></div>
         </div>
@@ -445,12 +445,11 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <label for="x-themesText">ثيمات إضافية (سطر لكل ثيم: الاسم|#لون)</label>
         <textarea id="x-themesText" dir="ltr" placeholder="ليلكي|#9b5de5&#10;برتقالي|#e8590c" style="min-height:70px"></textarea>
 
-        <h2 style="margin-top:24px">✈️ تلجرام (استقبال الطلبات)</h2>
-        <div class="grid2">
-          <div><label for="x-tgToken">توكن البوت</label><input id="x-tgToken" dir="ltr" placeholder="123456:ABC..."></div>
-          <div><label for="x-tgChat">معرّف القروب (chat id)</label><input id="x-tgChat" dir="ltr" placeholder="-100123456789"></div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" id="tgTest" class="secondary small">📨 إرسال رسالة تجربة</button><button type="button" id="tgFind" class="secondary small">🔎 جلب معرف القروب تلقائياً</button></div><p class="hint" id="tgMsg"></p>
+        <h2 style="margin-top:24px">📲 توثيق الأرقام والتواصل</h2>
+        <label class="check"><input id="x-requireVerified" type="checkbox"> إلزام العميل بتأكيد رقمه عبر واتساب قبل إرسال الطلب</label>
+        <label for="x-contactNumbers">أرقام التواصل المباشر مع المحل (تظهر للعميل عند متابعة الطلب — رقم في كل سطر)</label>
+        <textarea id="x-contactNumbers" dir="ltr" placeholder="9665XXXXXXXX&#10;9665XXXXXXXX" style="min-height:70px"></textarea>
+        <p class="hint">تلجرام (التوكن ومعرّف القروب) وربط أرقام البوت الإضافية يُضبطان من السيرفر (ملف .env) وأوامر البوت، ولا يُحفظان هنا حتى لا يظهر التوكن للزوار.</p>
         <label for="x-feeNote">ملاحظة التوصيل لما يقل الطلب عن الحد المجاني</label>
         <input id="x-feeNote" placeholder="رسوم التوصيل تُتفق مع المندوب حسب الحي (10–20 ر.س داخل حائل)">
 
@@ -486,7 +485,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs, getCountFromServer, query, where, orderBy, limit, startAfter, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs, getCountFromServer, query, where, orderBy, limit, startAfter, serverTimestamp, onSnapshot, deleteField } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDhZrTQ4QFM8AhznH5ArQa9A8_kY86G2vM",
@@ -1293,7 +1292,7 @@ $("tForm").addEventListener("submit", async e => {
   } catch (err) { showToast("تعذر الإنشاء: " + err.message, true); }
 });
 /* ---------- الإعدادات ---------- */
-const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["tgToken","t"],["tgChat","t"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"],["vipOrders","t"],["vipPercent","t"]];
+const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["contactNumbers","t"],["requireVerified","b"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"],["vipOrders","t"],["vipPercent","t"]];
 $("x-logoFile").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; const u = await uploadImageToServer(f); if (u) { $("x-logoUrl").value = u; showToast("تم رفع الشعار — اضغط حفظ"); } e.target.value = ""; });
 $("x-bgFiles").addEventListener("change", async e => { const t = $("x-bgImages"), n = t.value.split("\n").map(x => x.trim()).filter(Boolean); for (const f of [...e.target.files]) { if (n.length >= 10) break; const u = await uploadImageToServer(f); if (u) n.push(u); } t.value = n.join("\n"); e.target.value = ""; showToast("تم رفع الخلفيات — اضغط حفظ"); });
 async function compress(file, max = 1280, q = 0.8) {
@@ -1334,14 +1333,6 @@ async function recompressAll() {
   } catch (e) { log.textContent = "❌ " + e.message; }
 }
 $("rcBtn").addEventListener("click", () => { if (confirm("سيتم ضغط الصور الكبيرة وإعادة رفعها وتحديث روابطها. تبدأ؟")) recompressAll(); });
-$("tgFind").addEventListener("click", async () => { const t = $("x-tgToken").value.trim(); if (!t) return showToast("أدخل التوكن أولاً", true);
-  try { const r = await (await fetch(`https://api.telegram.org/bot${t}/getUpdates`)).json(); if (!r.ok) throw new Error(r.description);
-    const c = [...r.result].reverse().map(u => (u.message || u.channel_post || u.my_chat_member)?.chat).find(Boolean);
-    if (!c) { $("tgMsg").textContent = "أضف البوت للقروب واكتب فيه رسالة ثم أعد المحاولة"; return; } $("x-tgChat").value = c.id; $("tgMsg").textContent = "تم جلب: " + (c.title || c.id) + " — اضغط حفظ";
-  } catch (e) { $("tgMsg").textContent = "فشل: " + e.message; } });
-$("tgTest").addEventListener("click", async () => { const t = $("x-tgToken").value.trim(), c = $("x-tgChat").value.trim();
-  try { const r = await (await fetch(`https://api.telegram.org/bot${t}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: c, text: "✅ رسالة تجربة من لوحة الإدارة" }) })).json();
-    $("tgMsg").textContent = r.ok ? "✅ وصلت الرسالة للقروب" : "❌ " + r.description; } catch (e) { $("tgMsg").textContent = "❌ " + e.message; } });
 async function loadSettings() {
   try {
     const data = (await getDoc(doc(db, "settings", "store"))).data() || {};
@@ -1376,6 +1367,7 @@ $("sForm").addEventListener("submit", async e => {
     closedMsg: $("s-closedMsg").value.trim(),
     deliveryOpen: $("s-deliveryOpen").checked,
     ...Object.fromEntries(EX.map(([k, t]) => [k, t === "b" ? $("x-" + k).checked : $("x-" + k).value.trim()])),
+    tgToken: deleteField(), tgChat: deleteField(), // نُقلا للسيرفر؛ نحذفهما من الوثيقة العامة
     updatedAt: serverTimestamp()
   };
   try {
@@ -1407,4 +1399,4 @@ async function exportDataCSV() {
 }
 </script>
 </body>
-                                                             </html>
+                                     </html>
