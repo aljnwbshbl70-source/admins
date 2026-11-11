@@ -160,6 +160,26 @@ button.danger:hover { background: var(--bad); color: #fff; }
 .chart-track { flex: 1; height: 12px; background: var(--soft); border-radius: 99px; overflow: hidden; }
 .chart-fill { height: 100%; background: var(--accent); border-radius: 99px; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
 .chart-num { width: 30px; font-size: 0.85rem; color: var(--muted); }
+
+/* ---------- نموذج بشكل المعاينة (أزرار إضافة مصغّرة) ---------- */
+.addbox{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 8px;width:100%;padding:10px 14px;margin:6px 0;border:1.5px dashed var(--line);border-radius:12px;background:var(--bg);color:var(--accent);cursor:pointer;text-align:center;font-size:.92rem;font-weight:600}
+.addbox:hover{border-color:var(--accent);background:var(--accent-light)}
+.addbox span{font-size:1.2rem;line-height:1}
+.addbox small{width:100%;color:var(--muted);font-weight:400;font-size:.72rem}
+#p-main .addbox,#c-stage .addbox{min-height:96px;flex-direction:column;flex-wrap:nowrap}
+.th{position:relative;width:64px;height:64px;flex-shrink:0;cursor:pointer}
+.th img{width:100%;height:100%;object-fit:cover;border-radius:10px;border:2px solid var(--line)}
+.th.on img{border-color:var(--accent)}
+.th .x{position:absolute;top:-6px;left:-6px;width:20px;height:20px;border-radius:50%;background:var(--bad);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
+.th.plus{display:flex;align-items:center;justify-content:center;border:2px dashed var(--line);border-radius:10px;font-size:1.6rem;color:var(--accent);background:var(--bg);margin:0}
+.pv-edit{max-width:460px;margin:0 auto}
+.pv-edit .pv-main{max-width:240px;margin:0 auto}
+.pv-edit input.big{font-size:1.2rem;font-weight:700;margin-top:12px}
+.opt{margin-top:14px}
+.opt .optbody{border:1px solid var(--line);border-radius:14px;padding:4px 14px 14px}
+.sec-title{font-weight:700;margin:18px 0 6px}
+/* حقول الملفات: غير مرئية لكنها قابلة للنقر عبر label (أضمن من display:none) */
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 </style>
 </head>
 <body>
@@ -261,60 +281,70 @@ button.danger:hover { background: var(--bad); color: #fff; }
 
       <form id="pForm" class="card" hidden>
         <h2 id="pTitle">منتج جديد</h2>
-        <div class="grid2">
-          <div><label for="p-name">اسم المنتج</label><input id="p-name" placeholder="مثال: مخمرية الملكة بالعود" required></div>
-          <div><label for="p-cat">القسم التابع له</label><select id="p-cat" required></select></div>
-        </div>
+        <div class="pv-edit">
 
-        <label for="p-desc">وصف المنتج تفصيلياً</label>
-        <textarea id="p-desc" placeholder="اكتب وصفاً جذاباً للمنتج ومكوناته..."></textarea>
+          <div id="p-main"></div>
+          <div id="p-imgs" class="pv-thumbs"></div>
+          <input id="p-files" type="file" accept="image/*" multiple class="vh">
+          <p class="hint" id="p-imgInfo">اضغط على أي صورة مصغّرة لتصير الرئيسية</p>
 
-        <label for="p-usage">طريقة الاستخدام / ملاحظات هامة</label>
-        <textarea id="p-usage" placeholder="مثال: يوضع بعد الاستحمام على نقاط النبض..."></textarea>
+          <input id="p-name" class="big" placeholder="اسم المنتج — مثال: مخمرية الملكة بالعود" required>
+          <select id="p-cat" required style="margin-top:10px"></select>
 
-        <div class="grid2"><div><label for="p-keywords">كلمات البحث (مثل: عود، بخور)</label><input id="p-keywords"></div><div><label for="p-badge">شارة على المنتج (جديد / خصم / الأكثر طلباً)</label><input id="p-badge" placeholder="اختياري"></div></div>
-        <div class="grid2" style="margin-top:14px"><div><label for="p-oldPrice">السعر قبل الخصم (للعروض)</label><input id="p-oldPrice" type="number" step="any"></div><div><label class="check" style="margin-top:36px"><input id="p-offer" type="checkbox"> ضمن العروض</label></div></div>
-        <div class="card" style="margin-top:14px"><h3>📍 مكان المنتج في المحل</h3><div class="grid2">
-          <div><label for="p-branch">الفرع</label><select id="p-branch"><option value="">بدون</option><option>الفرع الأول</option><option>الفرع الثاني</option></select></div>
-          <div><label for="p-locBigF">الصورة الكبيرة للقسم</label><input id="p-locBigF" type="file" accept="image/*"></div>
-          <div><label for="p-locZoomF">الصورة المقرّبة للمنتج</label><input id="p-locZoomF" type="file" accept="image/*"></div></div>
-          <p class="hint">اضغط على الصورة الكبيرة لتحديد مكان الدائرة الحمراء</p><div id="p-locPrev" style="position:relative;max-width:420px;cursor:crosshair"></div></div>
-        <label for="p-files">صور المنتج (يمكن اختيار أكثر من صورة)</label>
-        <input id="p-files" type="file" accept="image/*" multiple>
-        <p class="hint" id="p-imgInfo">يتم الرفع تلقائياً إلى ImgBB. الصورة الأولى تعتبر الرئيسية.</p>
-        <div id="p-imgs" class="imgs-manager"></div>
+          <div class="sec-title">الأحجام والأسعار</div>
+          <div id="sizesContainer" class="builder-box" style="padding:0;border:0;background:none"></div>
+          <button type="button" id="addSizeBtn" class="addbox"><span>＋</span><b>أضف حجم وسعر</b><small>مثال: 100 مل بسعر 45 ر.س — تقدر تضيف أكثر من حجم</small></button>
 
-        <div style="margin-top:20px;">
-          <label>الأحجام، الوحدات، والأسعار</label>
-          <p class="hint">الترتيب: الكمية — الوحدة — السعر — المخزون</p>
-          <div id="sizesContainer" class="builder-box"></div>
-          <button type="button" id="addSizeBtn" class="secondary small">+ إضافة حجم / سعة جديدة</button>
-        </div>
+          <div class="sec-title">النكهات / الروائح</div>
+          <div id="flavorsContainer" class="builder-box" style="padding:0;border:0;background:none"></div>
+          <button type="button" id="addFlavorBtn" class="addbox"><span>＋</span><b>أضف نكهة أو رائحة</b><small>مثال: عود ملكي، مسك، ورد — واختياري تحط فرق السعر</small></button>
 
-        <div style="margin-top:14px;">
-          <label>النكهات / الروائح / الخيارات المتاحة</label>
-          <div id="flavorsContainer" class="builder-box"></div>
-          <button type="button" id="addFlavorBtn" class="secondary small">+ إضافة نكهة / رائحة جديدة</button>
-        </div>
-
-        <div class="grid2" style="margin-top:14px;">
-          <div>
-            <label for="p-status">حالة المنتج</label>
-            <select id="p-status">
-              <option value="available">متوفر للطلب</option>
-              <option value="soldout">نافد من المخزن</option>
-              <option value="hidden">مخفي عن الزبائن</option>
-            </select>
+          <div class="opt" id="o-desc">
+            <button type="button" class="addbox"><span>＋</span><b>أضف وصف المنتج</b><small>اكتب وش يميزه ومكوناته بجمل قصيرة</small></button>
+            <div class="optbody" hidden><label for="p-desc">الوصف</label><textarea id="p-desc"></textarea></div>
           </div>
-          <div>
-            <label class="check" style="margin-top:36px;"><input id="p-featured" type="checkbox"> منتج مميز (يظهر بالصفحة الأولى)</label>
-          </div>
-        </div>
 
-        <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
-          <button class="main" type="submit" id="p-save" style="flex:1">حفظ المنتج</button>
-          <button type="button" id="p-preview" class="secondary">👁️ معاينة كزبون</button>
-          <button type="button" id="p-cancel" class="danger">إلغاء</button>
+          <div class="opt" id="o-usage">
+            <button type="button" class="addbox"><span>＋</span><b>أضف طريقة الاستخدام</b><small>مثال: يوضع بعد الاستحمام على نقاط النبض</small></button>
+            <div class="optbody" hidden><label for="p-usage">طريقة الاستخدام</label><textarea id="p-usage"></textarea></div>
+          </div>
+
+          <div class="opt" id="o-offer">
+            <button type="button" class="addbox"><span>＋</span><b>أضف عرض أو شارة أو كلمات بحث</b><small>سعر قبل الخصم، شارة «جديد»، وكلمات يلقاه الزبون فيها</small></button>
+            <div class="optbody" hidden>
+              <div class="grid2">
+                <div><label for="p-badge">شارة على المنتج</label><input id="p-badge" placeholder="جديد / خصم / الأكثر طلباً"></div>
+                <div><label for="p-oldPrice">السعر قبل الخصم</label><input id="p-oldPrice" type="number" step="any"></div>
+              </div>
+              <label class="check"><input id="p-offer" type="checkbox"> ضمن العروض</label>
+              <label for="p-keywords">كلمات البحث</label><input id="p-keywords" placeholder="عود، بخور، عروس">
+            </div>
+          </div>
+
+          <div class="opt" id="o-loc">
+            <button type="button" class="addbox"><span>＋</span><b>أضف مكان المنتج في المحل</b><small>اختر الفرع وصورة الرف وحدد المكان بدائرة حمراء</small></button>
+            <div class="optbody" hidden>
+              <div class="grid2">
+                <div><label for="p-branch">الفرع</label><select id="p-branch"><option value="">بدون</option><option>الفرع الأول</option><option>الفرع الثاني</option></select></div>
+                <div><label for="p-locBigF">الصورة الكبيرة للقسم</label><input id="p-locBigF" type="file" accept="image/*"></div>
+                <div><label for="p-locZoomF">الصورة المقرّبة للمنتج</label><input id="p-locZoomF" type="file" accept="image/*"></div>
+              </div>
+              <p class="hint">اضغط على الصورة الكبيرة لتحديد مكان الدائرة</p>
+              <div id="p-locPrev" style="position:relative;max-width:420px;cursor:crosshair"></div>
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:18px">
+            <div><label for="p-status">حالة المنتج</label>
+              <select id="p-status"><option value="available">متوفر للطلب</option><option value="soldout">نافد من المخزن</option><option value="hidden">مخفي عن الزبائن</option></select></div>
+            <div><label class="check" style="margin-top:36px"><input id="p-featured" type="checkbox"> منتج مميز (الصفحة الأولى)</label></div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
+            <button class="main" type="submit" id="p-save" style="flex:1">حفظ المنتج</button>
+            <button type="button" id="p-preview" class="secondary">👁️ معاينة كزبون</button>
+            <button type="button" id="p-cancel" class="danger">إلغاء</button>
+          </div>
         </div>
       </form>
 
@@ -361,19 +391,28 @@ button.danger:hover { background: var(--bad); color: #fff; }
       <div class="grid2">
         <form id="cForm" class="card">
           <h2 id="cTitle">قسم جديد</h2>
-          <label for="c-name">اسم القسم</label>
-          <input id="c-name" placeholder="مثال: عطور عرايس" required>
-          <div class="grid2">
-            <div><label for="c-parent">يتبع لقسم (رئيسي)</label><select id="c-parent"></select></div>
-            <div><label for="c-order">ترتيب العرض</label><input id="c-order" type="number" value="0" inputmode="numeric"></div>
+          <div class="pv-edit">
+            <div id="c-stage"></div>
+            <input id="c-file" type="file" accept="image/*" class="vh">
+            <input id="c-image" type="hidden">
+            <p class="hint" id="c-imgInfo"></p>
+
+            <input id="c-name" class="big" placeholder="اسم القسم — مثال: عطور عرايس" required>
+
+            <div class="opt" id="o-cparent">
+              <button type="button" class="addbox"><span>＋</span><b>اجعله قسم فرعي</b><small>اتركه كما هو إذا كان قسم رئيسي</small></button>
+              <div class="optbody" hidden><label for="c-parent">يتبع للقسم</label><select id="c-parent"></select></div>
+            </div>
+
+            <div class="opt" id="o-corder">
+              <button type="button" class="addbox"><span>＋</span><b>حدد ترتيب الظهور</b><small>الرقم الأصغر يظهر أول، والافتراضي 0</small></button>
+              <div class="optbody" hidden><label for="c-order">ترتيب العرض</label><input id="c-order" type="number" value="0" inputmode="numeric"></div>
+            </div>
+
+            <label class="check"><input id="c-active" type="checkbox" checked> ظاهر في المتجر للزبائن</label>
+            <button class="main" type="submit" style="margin-top:16px">حفظ القسم</button>
+            <button type="button" id="c-cancel" class="small" style="margin-top:8px" hidden>إلغاء التعديل</button>
           </div>
-          <label for="c-file">صورة القسم (رفع مباشر)</label>
-          <input id="c-file" type="file" accept="image/*">
-          <input id="c-image" type="hidden">
-          <p class="hint" id="c-imgInfo"></p>
-          <label class="check"><input id="c-active" type="checkbox" checked> ظاهر في المتجر للزبائن</label>
-          <button class="main" type="submit" style="margin-top:16px">حفظ القسم</button>
-          <button type="button" id="c-cancel" class="small" style="margin-top:8px" hidden>إلغاء التعديل</button>
         </form>
         <div class="card">
           <h2>قائمة الأقسام الحالية</h2>
@@ -556,6 +595,31 @@ function createButton(text, onClick, extraClass = "") {
   return btn;
 }
 
+/* ---------- مربعات + والخيارات الاختيارية ---------- */
+// إذا مُرّر forId يصير الزر <label> مربوط بحقل الملف (يفتح اختيار الصورة مباشرة بدون JS)
+function plusTile(title, hint, fn, forId) {
+  const b = document.createElement(forId ? "label" : "button");
+  if (forId) b.htmlFor = forId; else { b.type = "button"; b.onclick = fn; }
+  b.className = "addbox";
+  b.innerHTML = `<span>＋</span><b>${title}</b><small>${hint}</small>`;
+  return b;
+}
+function syncOpts() {
+  document.querySelectorAll(".opt").forEach(o => {
+    const body = o.querySelector(".optbody"), btn = o.querySelector(":scope>.addbox");
+    const has = [...body.querySelectorAll("input,textarea,select")].some(e =>
+      e.type === "file" ? false : e.type === "checkbox" ? e.checked : (e.value && e.value !== "0"))
+      || (o.id === "o-loc" && locState.big);
+    body.hidden = !has; btn.hidden = has;
+  });
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".opt>.addbox"); if (!b) return;
+  const o = b.parentElement; b.hidden = true;
+  o.querySelector(".optbody").hidden = false;
+  o.querySelector("input:not([type=file]),textarea")?.focus();
+});
+
 /* ---------- المظهر ---------- */
 function isDarkNow() {
   const t = document.documentElement.getAttribute("data-theme");
@@ -577,7 +641,7 @@ function go(viewName) {
   $("side").classList.remove("open");
 
   if (viewName === "dash") loadDashboard();
-  if (viewName === "cats") { populateParentCatSelect(); renderCatsList(); }
+  if (viewName === "cats") { populateParentCatSelect(); renderCatsList(); renderCatImg(); syncOpts(); }
   if (viewName === "prods") loadProducts(true);
   if (viewName === "orders") loadOrders(true);
   if (viewName === "sets") loadSettings();
@@ -767,13 +831,23 @@ function renderCatsList() {
   });
 }
 
+function renderCatImg() {
+  const s = $("c-stage"), u = $("c-image").value;
+  s.replaceChildren();
+  const pick = () => $("c-file").click();
+  if (u) {
+    const i = document.createElement("img");
+    i.className = "pv-main"; i.src = u; i.alt = ""; i.style.cursor = "pointer"; i.onclick = pick;
+    s.append(i);
+  } else s.append(plusTile("أضف صورة القسم", "اضغط واختر صورة تمثل القسم", pick, "c-file"));
+}
 $("c-file").addEventListener("change", async e => {
-  const f = e.target.files[0];
-  if (!f) return;
+  const f = e.target.files[0]; if (!f) return;
   $("c-imgInfo").textContent = "جارٍ رفع الصورة...";
   const url = await uploadImageToServer(f);
-  if (url) { $("c-image").value = url; $("c-imgInfo").textContent = "تم رفع: " + f.name; }
+  if (url) { $("c-image").value = url; $("c-imgInfo").textContent = "اضغط على الصورة لتغييرها"; }
   else $("c-imgInfo").textContent = "فشل الرفع.";
+  renderCatImg(); e.target.value = "";
 });
 
 $("cForm").addEventListener("submit", async e => {
@@ -804,10 +878,11 @@ function startEditCat(cat) {
   $("c-parent").value = cat.parentId || "";
   $("c-order").value = cat.order || 0;
   $("c-image").value = cat.image || "";
-  $("c-imgInfo").textContent = cat.image ? "الصورة الحالية محفوظة (اختر ملفاً لاستبدالها)" : "";
+  $("c-imgInfo").textContent = cat.image ? "اضغط على الصورة لتغييرها" : "";
   $("c-active").checked = cat.active !== false;
   $("cTitle").textContent = "تعديل القسم";
   $("c-cancel").hidden = false;
+  renderCatImg(); syncOpts();
   $("cForm").scrollIntoView({ behavior: "smooth" });
 }
 
@@ -819,6 +894,7 @@ function resetCatForm() {
   $("cTitle").textContent = "قسم جديد";
   $("c-cancel").hidden = true;
   populateParentCatSelect();
+  renderCatImg(); syncOpts();
 }
 $("c-cancel").addEventListener("click", resetCatForm);
 
@@ -977,24 +1053,26 @@ function readFlavorsFromUI() {
 }
 
 function renderImagesGallery() {
-  const box = $("p-imgs");
-  box.replaceChildren();
-  currentImages.forEach((url, idx) => {
-    const card = createElement("div", "", "img-card" + (idx === 0 ? " main-img" : ""));
-    const img = document.createElement("img");
-    img.src = url;
-    img.alt = "";
-    const overlay = createElement("div", "", "img-actions");
-    if (idx !== 0) {
-      overlay.append(createButton("رئيسية", () => {
-        currentImages.unshift(currentImages.splice(idx, 1)[0]);
-        renderImagesGallery();
-      }));
-    }
-    overlay.append(createButton("حذف", () => { currentImages.splice(idx, 1); renderImagesGallery(); }, "danger"));
-    card.append(img, overlay);
-    box.append(card);
+  const m = $("p-main"), t = $("p-imgs");
+  m.replaceChildren(); t.replaceChildren();
+  const pick = () => $("p-files").click();
+  if (currentImages[0]) {
+    const i = document.createElement("img");
+    i.className = "pv-main"; i.src = currentImages[0]; i.alt = "";
+    m.append(i);
+  } else {
+    m.append(plusTile("أضف صور المنتج", "اضغط واختر صورة أو أكثر — الأولى تكون الرئيسية", pick, "p-files"));
+    return;
+  }
+  currentImages.forEach((u, idx) => {
+    const d = createElement("div", "", "th" + (idx === 0 ? " on" : ""));
+    const i = document.createElement("img"); i.src = u; i.alt = "";
+    i.onclick = () => { currentImages.unshift(currentImages.splice(idx, 1)[0]); renderImagesGallery(); };
+    const x = createElement("b", "✕", "x");
+    x.onclick = ev => { ev.stopPropagation(); currentImages.splice(idx, 1); renderImagesGallery(); };
+    d.append(i, x); t.append(d);
   });
+  const p = createElement("label", "＋", "th plus"); p.htmlFor = "p-files"; t.append(p);
 }
 
 let uploadingProduct = false;
@@ -1012,7 +1090,7 @@ $("p-files").addEventListener("change", async e => {
   }
   uploadingProduct = false;
   $("p-save").disabled = false;
-  $("p-imgInfo").textContent = `تم رفع ${ok} من ${files.length} صورة: ` + files.map(f => f.name).join("، ");
+  $("p-imgInfo").textContent = "اضغط على أي صورة مصغّرة لتصير الرئيسية";
   input.value = "";
   showToast(ok ? "تمت إضافة الصور للمعرض" : "لم تُرفع أي صورة", !ok);
 });
@@ -1042,14 +1120,15 @@ function openForm(product = null) {
   $("p-keywords").value = product?.keywords || ""; $("p-badge").value = product?.badge || "";
   $("p-oldPrice").value = product?.oldPrice || ""; $("p-offer").checked = !!product?.offer;
   locState = { big: "", zoom: "", x: 50, y: 50, ...(product?.loc || {}) }; $("p-branch").value = product?.loc?.branch || ""; renderLoc();
-  $("p-imgInfo").textContent = "يتم الرفع تلقائياً إلى ImgBB. الصورة الأولى تعتبر الرئيسية.";
+  $("p-imgInfo").textContent = "اضغط على أي صورة مصغّرة لتصير الرئيسية";
 
   $("sizesContainer").replaceChildren();
-  (product?.sizes?.length ? product.sizes : [{}]).forEach(addSizeRow);
+  (product?.sizes?.length ? product.sizes : []).forEach(addSizeRow);
   $("flavorsContainer").replaceChildren();
   (product?.flavors?.length ? product.flavors : []).forEach(addFlavorRow);
 
   renderImagesGallery();
+  syncOpts();
   $("pForm").hidden = false;
   $("pForm").scrollIntoView({ behavior: "smooth" });
 }
@@ -1446,4 +1525,4 @@ async function exportDataCSV() {
 }
 </script>
 </body>
-            </html>
+</html>
