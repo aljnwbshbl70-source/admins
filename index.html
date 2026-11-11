@@ -329,6 +329,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
       <h1>الطلبات والمبيعات</h1>
       <p class="sub">متابعة الطلبات وتحديث حالتها</p>
       <div class="card">
+        <p class="hint" id="o-sum"></p>
         <div class="grid2">
           <div>
             <label for="o-status">تصفية حسب حالة الطلب</label>
@@ -343,6 +344,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
           </div>
           <div style="display:flex; align-items:flex-end;">
             <input id="o-q" placeholder="🔍 بحث بالاسم أو الجوال" style="margin-left:8px"><button type="button" class="secondary" id="oRefresh">🔄 تحديث الطلبات</button>
+            <input id="o-from" type="date" title="من تاريخ" style="margin-right:8px"><input id="o-to" type="date" title="إلى تاريخ" style="margin-right:4px"><button type="button" class="secondary" id="oExport" style="margin-right:8px">⬇️ تصدير Excel</button>
           </div>
         </div>
       </div>
@@ -449,6 +451,15 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <label class="check"><input id="x-requireVerified" type="checkbox"> إلزام العميل بتأكيد رقمه عبر واتساب قبل إرسال الطلب</label>
         <label for="x-contactNumbers">أرقام التواصل المباشر مع المحل (تظهر للعميل عند متابعة الطلب — رقم في كل سطر)</label>
         <textarea id="x-contactNumbers" dir="ltr" placeholder="9665XXXXXXXX&#10;9665XXXXXXXX" style="min-height:70px"></textarea>
+        <h2 style="margin-top:24px">💬 رسالة ترحيب البوت (واتساب)</h2>
+        <p class="hint">تُرسل تلقائياً لأي شخص يراسل رقم المحل (نص أو صورة أو صوت)، مرة كل ساعة لكل شخص. اترك النص فارغاً لاستخدام الرسالة الجاهزة.</p>
+        <div class="grid2">
+          <div><label for="x-siteUrl">رابط المتجر الإلكتروني</label><input id="x-siteUrl" dir="ltr" placeholder="https://astorh.us.ci"></div>
+          <div><label for="x-shopLocation">رابط موقع المحل (خرائط قوقل)</label><input id="x-shopLocation" dir="ltr" placeholder="https://maps.app.goo.gl/..."></div>
+        </div>
+        <label for="x-botWelcome">نص الرسالة (اختياري)</label>
+        <textarea id="x-botWelcome" style="min-height:160px" placeholder="اتركه فارغاً للرسالة الجاهزة. يمكنك استخدام: {name} اسم المتجر · {site} رابط المتجر · {location} موقع المحل · {contacts} أرقام خدمة العملاء. استخدم *نص* للخط العريض."></textarea>
+        <p class="hint">أرقام خدمة العملاء تؤخذ من حقل «أرقام التواصل المباشر» أعلاه.</p>
         <p class="hint">تلجرام (التوكن ومعرّف القروب) وربط أرقام البوت الإضافية يُضبطان من السيرفر (ملف .env) وأوامر البوت، ولا يُحفظان هنا حتى لا يظهر التوكن للزوار.</p>
         <label for="x-feeNote">ملاحظة التوصيل لما يقل الطلب عن الحد المجاني</label>
         <input id="x-feeNote" placeholder="رسوم التوصيل تُتفق مع المندوب حسب الحي (10–20 ر.س داخل حائل)">
@@ -468,6 +479,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <div class="grid2">
           <div><label for="x-freeFrom">توصيل مجاني فوق مبلغ (ر.س)</label><input id="x-freeFrom" type="number" inputmode="decimal" placeholder="مثال: 500"></div>
           <div><label for="x-etaText">وقت التوصيل المتوقع</label><input id="x-etaText" placeholder="يوصلك خلال 2-3 أيام"></div>
+          <div><label for="x-unassignedAlertMin">🔔 تنبيه البوت إذا بقي الطلب بلا مندوب (بالدقائق، 0 = إيقاف)</label><input id="x-unassignedAlertMin" type="number" inputmode="numeric" placeholder="10"></div>
           <div><label class="check"><input id="x-pickupOn" type="checkbox"> السماح بالاستلام من المحل</label></div>
           <div><label class="check"><input id="x-giftOn" type="checkbox"> خيار الطلب كهدية</label></div>
           <div><label class="check"><input id="x-waFloat" type="checkbox"> زر واتساب عائم في المتجر</label></div>
@@ -610,7 +622,15 @@ async function initApp() {
 if (REQUIRE_LOGIN) {
   $("logout").hidden = false;
   onAuthStateChanged(auth, async u => {
-    if (u) { try { const r = await getDocs(query(collection(db, "staff"), where("email", "==", u.email))); if (r.docs.some(d => d.data().role === "courier")) { await signOut(auth); $("loginMsg").textContent = "هذا حساب مندوب ولا يدخل الإدارة"; return; } } catch {} initApp(); }
+    if (u) {
+      // بوابة واجهة فقط (الحماية الحقيقية في قواعد Firestore) — تفشل مغلقة: لا دخول إلا للمالك أو موظف مسجّل غير مندوب
+      let allowed = (u.email || "").toLowerCase() === OWNER_EMAIL.toLowerCase();
+      if (!allowed) {
+        try { const sd = await getDoc(doc(db, "staff", u.uid)); allowed = sd.exists() && sd.data().role !== "courier"; } catch { allowed = false; }
+      }
+      if (!allowed) { await signOut(auth); $("loginMsg").textContent = "هذا الحساب لا يملك صلاحية الإدارة"; return; }
+      initApp();
+    }
     else { appStarted = false; $("shell").hidden = true; $("loginBox").hidden = false; }
   });
 
@@ -1174,14 +1194,18 @@ async function loadOrders(reset = false) {
 
   const statusFilter = $("o-status").value;
   const conds = [];
+  const df = $("o-from").value, dt = $("o-to").value;
+  const from = df ? new Date(df + "T00:00:00") : null, to = dt ? new Date(dt + "T23:59:59") : null;
   if (statusFilter) conds.push(where("status", "==", statusFilter));
-  else conds.push(orderBy("createdAt", "desc"));
+  else { if (from) conds.push(where("createdAt", ">=", from)); if (to) conds.push(where("createdAt", "<=", to)); conds.push(orderBy("createdAt", "desc")); }
   if (lastOrderDoc) conds.push(startAfter(lastOrderDoc));
   conds.push(limit(PAGE_SIZE));
 
   try {
     const snap = await getDocs(query(collection(db, "orders"), ...conds));
     snap.docs.forEach(d => {
+      const ms = (d.data().createdAt?.seconds || 0) * 1000;
+      if (statusFilter && ((from && ms < +from) || (to && ms > +to))) return;
       const order = { id: d.id, ...d.data() };
       orders.push(order);
       $("oList").append(renderOrderRow(order));
@@ -1189,6 +1213,8 @@ async function loadOrders(reset = false) {
     lastOrderDoc = snap.docs[snap.docs.length - 1] || lastOrderDoc;
     $("oMore").hidden = snap.docs.length < PAGE_SIZE;
     if (!orders.length) $("oList").replaceChildren(createElement("p", "لا توجد طلبات متوفرة.", "hint"));
+    const live = orders.filter(o => o.status !== "cancelled");
+    $("o-sum").textContent = orders.length ? `المعروض: ${orders.length} طلب • المبيعات (بدون الملغي): ${Math.round(live.reduce((a, o) => a + (Number(o.total) || 0), 0) * 100) / 100} ر.س` : "";
   } catch (err) {
     showToast("خطأ في تحميل الطلبات: " + err.message, true);
   }
@@ -1196,6 +1222,27 @@ async function loadOrders(reset = false) {
 $("o-status").addEventListener("change", () => loadOrders(true));
 $("o-q").addEventListener("input", e => { const v = e.target.value.trim().toLowerCase(); document.querySelectorAll("#oList .item").forEach(r => { r.hidden = !!v && !(r.dataset.s || "").includes(v); }); });
 $("oRefresh").addEventListener("click", () => loadOrders(true));
+$("o-from").addEventListener("change", () => loadOrders(true));
+$("o-to").addEventListener("change", () => loadOrders(true));
+$("oExport").addEventListener("click", async () => {
+  try {
+    const df = $("o-from").value, dt = $("o-to").value, st = $("o-status").value, conds = [];
+    if (df) conds.push(where("createdAt", ">=", new Date(df + "T00:00:00")));
+    if (dt) conds.push(where("createdAt", "<=", new Date(dt + "T23:59:59")));
+    conds.push(orderBy("createdAt", "desc"), limit(3000));
+    showToast("جارٍ تجهيز الملف...");
+    const snap = await getDocs(query(collection(db, "orders"), ...conds));
+    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(o => !st || o.status === st);
+    const q = v => { let s = String(v ?? "").replace(/"/g, '""'); if (/^[=+\-@]/.test(s)) s = "'" + s; return `"${s}"`; };
+    const head = ["رقم الطلب", "التاريخ", "العميل", "الجوال", "العنوان", "المنتجات", "المجموع", "الخصم", "التوصيل", "الإجمالي", "الحالة", "المندوب", "التقييم", "ملاحظة العميل", "ملاحظة المندوب"];
+    const lines = rows.map(o => [o.id, o.createdAt?.seconds ? new Date(o.createdAt.seconds * 1000).toLocaleString("en-GB") : "", o.customerName, o.phone, o.address,
+      (o.items || []).map(i => `${i.qty}x ${i.name}${i.size ? " (" + i.size + ")" : ""}`).join(" + "), o.subtotal, o.discount, o.deliveryFee, o.total, ORDER_STATUSES[o.status] || o.status, o.courier, o.rating, o.notes, o.courierNote].map(q).join(","));
+    const blob = new Blob(["\ufeff" + [head.map(q).join(","), ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    showToast(`تم تصدير ${rows.length} طلب ✓`);
+  } catch (err) { showToast("تعذر التصدير: " + err.message, true); }
+});
 $("oMore").addEventListener("click", () => loadOrders(false));
 
 function renderOrderRow(ord) {
@@ -1292,10 +1339,10 @@ $("tForm").addEventListener("submit", async e => {
   } catch (err) { showToast("تعذر الإنشاء: " + err.message, true); }
 });
 /* ---------- الإعدادات ---------- */
-const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["contactNumbers","t"],["requireVerified","b"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"],["vipOrders","t"],["vipPercent","t"]];
+const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["unassignedAlertMin","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["contactNumbers","t"],["requireVerified","b"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"],["vipOrders","t"],["vipPercent","t"],["siteUrl","t"],["shopLocation","t"],["botWelcome","t"]];
 $("x-logoFile").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; const u = await uploadImageToServer(f); if (u) { $("x-logoUrl").value = u; showToast("تم رفع الشعار — اضغط حفظ"); } e.target.value = ""; });
 $("x-bgFiles").addEventListener("change", async e => { const t = $("x-bgImages"), n = t.value.split("\n").map(x => x.trim()).filter(Boolean); for (const f of [...e.target.files]) { if (n.length >= 10) break; const u = await uploadImageToServer(f); if (u) n.push(u); } t.value = n.join("\n"); e.target.value = ""; showToast("تم رفع الخلفيات — اضغط حفظ"); });
-async function compress(file, max = 1280, q = 0.8) {
+async function compress(file, max = 1000, q = 0.74) {
   try {
     const bmp = await createImageBitmap(file), k = Math.min(1, max / Math.max(bmp.width, bmp.height));
     const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
@@ -1399,4 +1446,4 @@ async function exportDataCSV() {
 }
 </script>
 </body>
-                                     </html>
+            </html>
