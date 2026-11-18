@@ -180,6 +180,10 @@ button.danger:hover { background: var(--bad); color: #fff; }
 .sec-title{font-weight:700;margin:18px 0 6px}
 /* حقول الملفات: غير مرئية لكنها قابلة للنقر عبر label (أضمن من display:none) */
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+.mainpick{margin:12px 0}
+.mp-row{display:flex;gap:10px;margin-top:6px}
+.mp-btn{flex:1;padding:12px 10px;border:1.5px solid var(--line,#ddd);border-radius:12px;background:var(--card,#fff);font-weight:700;cursor:pointer;color:inherit;font:inherit}
+.mp-btn.on{background:var(--accent,#8e2a52);border-color:var(--accent,#8e2a52);color:#fff}
 </style>
 </head>
 <body>
@@ -398,6 +402,15 @@ button.danger:hover { background: var(--bad); color: #fff; }
             <p class="hint" id="c-imgInfo"></p>
 
             <input id="c-name" class="big" placeholder="اسم القسم — مثال: عطور عرايس" required>
+
+            <div class="mainpick">
+              <label>التبعية الرئيسية للقسم</label>
+              <div class="mp-row">
+                <button type="button" class="mp-btn" data-mt="herbs">🌿 عطارة</button>
+                <button type="button" class="mp-btn" data-mt="care">✨ عناية</button>
+              </div>
+              <p class="hint">يحدد في أي قائمة يظهر القسم في المتجر. الأقسام القديمة تُعتبر "عناية" تلقائياً.</p>
+            </div>
 
             <div class="opt" id="o-cparent">
               <button type="button" class="addbox"><span>＋</span><b>اجعله قسم فرعي</b><small>اتركه كما هو إذا كان قسم رئيسي</small></button>
@@ -850,10 +863,20 @@ $("c-file").addEventListener("change", async e => {
   renderCatImg(); e.target.value = "";
 });
 
+/* نوع القسم الرئيسي: عطارة (herbs) أو عناية (care) */
+let cMainType = "care";
+function setMainPick(t) {
+  cMainType = t === "herbs" ? "herbs" : "care";
+  document.querySelectorAll(".mp-btn").forEach(b => b.classList.toggle("on", b.dataset.mt === cMainType));
+}
+document.querySelectorAll(".mp-btn").forEach(b => b.addEventListener("click", () => setMainPick(b.dataset.mt)));
+setMainPick("care");
+
 $("cForm").addEventListener("submit", async e => {
   e.preventDefault();
   const payload = {
     name: $("c-name").value.trim(),
+    mainType: cMainType,
     parentId: $("c-parent").value || null,
     image: $("c-image").value,
     order: Number($("c-order").value) || 0,
@@ -876,6 +899,7 @@ function startEditCat(cat) {
   populateParentCatSelect();
   $("c-name").value = cat.name;
   $("c-parent").value = cat.parentId || "";
+  setMainPick(cat.mainType === "herbs" ? "herbs" : "care");
   $("c-order").value = cat.order || 0;
   $("c-image").value = cat.image || "";
   $("c-imgInfo").textContent = cat.image ? "اضغط على الصورة لتغييرها" : "";
@@ -889,6 +913,7 @@ function startEditCat(cat) {
 function resetCatForm() {
   editCatId = null;
   $("cForm").reset();
+  setMainPick("care");
   $("c-image").value = "";
   $("c-imgInfo").textContent = "";
   $("cTitle").textContent = "قسم جديد";
