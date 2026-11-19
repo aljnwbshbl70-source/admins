@@ -185,6 +185,9 @@ button.danger:hover { background: var(--bad); color: #fff; }
 .mp-btn{flex:1;padding:12px 10px;border:1.5px solid var(--line,#ddd);border-radius:12px;background:var(--card,#fff);font-weight:700;cursor:pointer;color:inherit;font:inherit}
 .mp-btn.on{background:var(--accent,#8e2a52);border-color:var(--accent,#8e2a52);color:#fff}
 .fl-thumb{width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--line,#ddd)}
+.ctylist{position:absolute;right:0;left:0;top:100%;z-index:20;max-height:260px;overflow:auto;background:var(--card,#fff);border:1px solid var(--line,#ddd);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.cty-item{display:block;width:100%;text-align:right;padding:10px 12px;border:0;background:none;cursor:pointer;font:inherit;color:inherit}
+.cty-item:hover{background:var(--soft,#f5f0f2)}
 </style>
 </head>
 <body>
@@ -219,6 +222,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
       <button data-v="orders">📦 الطلبات والمبيعات</button>
       <button data-v="cats">📁 الأقسام والتصنيفات</button>
       <button data-v="cust">👥 الزبائن</button>
+      <button data-v="mine">📦 طلباتي والتقييمات</button>
       <button data-v="fb">📨 اقتراحات وبلاغات</button>
       <button data-v="team" class="own" hidden>🔑 فريق الإدارة</button>
       <button data-v="sets">⚙️ إعدادات المتجر</button>
@@ -295,6 +299,11 @@ button.danger:hover { background: var(--bad); color: #fff; }
 
           <input id="p-name" class="big" placeholder="اسم المنتج — مثال: مخمرية الملكة بالعود" required>
           <select id="p-cat" required style="margin-top:10px"></select>
+            <div class="ctybox" style="position:relative;margin-top:10px">
+              <label for="p-country">بلد المنشأ</label>
+              <input id="p-country" placeholder="ابحث عن الدولة..." autocomplete="off">
+              <div id="p-countryList" class="ctylist" hidden></div>
+            </div>
 
           <div class="sec-title">الأحجام والأسعار</div>
           <div id="sizesContainer" class="builder-box" style="padding:0;border:0;background:none"></div>
@@ -435,9 +444,13 @@ button.danger:hover { background: var(--bad); color: #fff; }
       </div>
     </section>
 
-    <section class="view" id="v-cust" hidden><h1>الزبائن</h1><p class="sub">عدد الطلبات والمشتريات — المميز من طلب 3 مرات فأكثر</p><div class="card"><div id="custList" class="item-list"></div></div></section>
+    <section class="view" id="v-cust" hidden><h1>الزبائن</h1><p class="sub">عدد الطلبات والمشتريات — المميز من طلب 3 مرات فأكثر</p><button id="hotReset" class="secondary" style="margin-bottom:12px">🔄 إعادة تعيين الأكثر طلباً</button>
+<div class="card"><div id="custList" class="item-list"></div></div></section>
     <section class="view" id="v-fb" hidden><h1>الاقتراحات والبلاغات</h1><div class="grid2"><div class="card"><h2>💡 الاقتراحات</h2><div id="sugList" class="item-list"></div></div><div class="card"><h2>⚠️ البلاغات</h2><div id="repList" class="item-list"></div></div><div class="card"><h2>💬 التعليقات (احذف أي تعليق)</h2><div id="cmList" class="item-list"></div></div></div></section>
-    <section class="view" id="v-team" hidden><h1>فريق الإدارة</h1><p class="sub">أنشئ حسابات دخول باسم مستخدم عربي أو إنجليزي. لإيقاف حساب احذفه من Firebase ← Authentication.</p>
+    <section class="view" id="v-mine" hidden><h1>طلباتي والتقييمات</h1><p class="sub">تقييم المنتجات والمندوبين وحالة الطلبات</p>
+<div class="grid2"><div class="card"><h2>⭐ تقييم المنتجات</h2><div id="ratProd" class="item-list"></div></div><div class="card"><h2>🚚 تقييم المندوبين</h2><div id="ratCour" class="item-list"></div></div></div>
+<div class="card"><h2>📦 حالة الطلبات</h2><div id="ordTrack" class="item-list"></div></div></section>
+<section class="view" id="v-team" hidden><h1>فريق الإدارة</h1><p class="sub">أنشئ حسابات دخول باسم مستخدم عربي أو إنجليزي. لإيقاف حساب احذفه من Firebase ← Authentication.</p>
       <form id="tForm" class="card"><div class="grid2"><div><label for="t-user">اسم المستخدم</label><input id="t-user" required></div><div><label for="t-pass">كلمة المرور (6 أحرف فأكثر)</label><input id="t-pass" required minlength="6"></div><div><label for="t-role">نوع الحساب</label><select id="t-role"><option value="courier">🚚 مندوب توصيل (لا يدخل الإدارة)</option><option value="admin">🔑 إداري</option></select></div></div><button class="main" type="submit" style="margin-top:14px">إضافة حساب</button></form>
       <div class="card"><div id="tList" class="item-list"></div></div></section>
     <section class="view" id="v-sets" hidden>
@@ -516,6 +529,13 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <p class="hint">تلجرام (التوكن ومعرّف القروب) وربط أرقام البوت الإضافية يُضبطان من السيرفر (ملف .env) وأوامر البوت، ولا يُحفظان هنا حتى لا يظهر التوكن للزوار.</p>
         <label for="x-feeNote">ملاحظة التوصيل لما يقل الطلب عن الحد المجاني</label>
         <input id="x-feeNote" placeholder="رسوم التوصيل تُتفق مع المندوب حسب الحي (10–20 ر.س داخل حائل)">
+        <div class="optbody" style="margin-top:10px"><label for="x-annText">نص الإعلان المنبثق قبل ظهور المنتجات</label><textarea id="x-annText" rows="6" placeholder="اترك فارغاً لاستخدام النص الافتراضي"></textarea>
+        <label class="check"><input id="x-annOn" type="checkbox"> تفعيل الإعلان المنبثق</label>
+        <label for="x-annBg">رابط خلفية الإعلان (اختياري)</label><input id="x-annBg" placeholder="https://...">
+        <label for="x-annImg">رابط صورة تظهر مع الإعلان (اختياري)</label><input id="x-annImg" placeholder="https://...">
+        <label for="x-annFile">أو ارفع صورة للإعلان</label><input id="x-annFile" type="file" accept="image/*">
+        <label for="x-instructions">تعليمات الاستخدام (تظهر للزبون في الإعدادات)</label><textarea id="x-instructions" rows="6"></textarea>
+        <label for="x-tutorials">روابط فيديوهات الشروحات (رابط في كل سطر)</label><textarea id="x-tutorials" rows="3" placeholder="https://www.youtube.com/watch?v=..."></textarea></div>
 
         <h2 style="margin-top:24px">🗜️ ضغط الصور القديمة</h2>
         <p class="hint">يضغط كل الصور الأكبر من 250 كيلو (منتجات، أقسام، شعار، خلفيات) ويعيد رفعها ويحدّث الروابط. اتركه يكمل ولا تسكّر الصفحة.</p>
@@ -661,6 +681,7 @@ function go(viewName) {
   if (viewName === "sets") loadSettings();
   if (viewName === "cust") loadCust();
   if (viewName === "fb") loadFb();
+  if (viewName === "mine") loadMine();
   if (viewName === "team") loadTeam();
 }
 
@@ -1101,6 +1122,16 @@ function readFlavorsFromUI() {
   return list;
 }
 
+const COUNTRIES = [["السعودية","🇸🇦"],["الإمارات","🇦🇪"],["الكويت","🇰🇼"],["قطر","🇶🇦"],["البحرين","🇧🇭"],["عُمان","🇴🇲"],["اليمن","🇾🇪"],["مصر","🇪🇬"],["الأردن","🇯🇴"],["لبنان","🇱🇧"],["سوريا","🇸🇾"],["العراق","🇮🇶"],["فلسطين","🇵🇸"],["المغرب","🇲🇦"],["الجزائر","🇩🇿"],["تونس","🇹🇳"],["ليبيا","🇱🇾"],["السودان","🇸🇩"],["تركيا","🇹🇷"],["إيران","🇮🇷"],["الهند","🇮🇳"],["باكستان","🇵🇰"],["الصين","🇨🇳"],["اليابان","🇯🇵"],["كوريا الجنوبية","🇰🇷"],["تايلاند","🇹🇭"],["ماليزيا","🇲🇾"],["إندونيسيا","🇮🇩"],["فرنسا","🇫🇷"],["ألمانيا","🇩🇪"],["إيطاليا","🇮🇹"],["إسبانيا","🇪🇸"],["المملكة المتحدة","🇬🇧"],["الولايات المتحدة","🇺🇸"],["البرازيل","🇧🇷"]];
+function drawCountries(q = "") {
+  const n = q.trim(), cl = $("p-countryList");
+  const list = COUNTRIES.filter(([name]) => !n || name.includes(n));
+  cl.replaceChildren(...list.map(([name, flag]) => { const b = document.createElement("button"); b.type = "button"; b.className = "cty-item"; b.textContent = `${flag} ${name}`; b.onclick = () => { $("p-country").value = `${flag} ${name}`; cl.hidden = true; }; return b; }));
+  cl.hidden = !list.length;
+}
+$("p-country").addEventListener("focus", () => { drawCountries(""); });
+$("p-country").addEventListener("input", e => drawCountries(e.target.value.replace(/^\S+\s/, "")));
+$("p-country").addEventListener("blur", () => setTimeout(() => $("p-countryList").hidden = true, 200));
 function renderImagesGallery() {
   const m = $("p-main"), t = $("p-imgs");
   m.replaceChildren(); t.replaceChildren();
@@ -1164,6 +1195,7 @@ function openForm(product = null) {
   $("p-cat").value = product?.categoryId || "";
   $("p-desc").value = product?.description || "";
   $("p-usage").value = product?.usage || "";
+  $("p-country").value = product?.country || "";
   $("p-status").value = product?.status || "available";
   $("p-featured").checked = !!product?.featured;
   $("p-keywords").value = product?.keywords || ""; $("p-badge").value = product?.badge || "";
@@ -1198,7 +1230,7 @@ $("pForm").addEventListener("submit", async e => {
     categoryId: catId,
     categoryName: categoryObj.name || "",
     description: $("p-desc").value.trim(),
-    usage: $("p-usage").value.trim(),
+    usage: $("p-usage").value.trim(), country: $("p-country").value.trim(),
     images: currentImages,
     sizes,
     flavors: readFlavorsFromUI(),
@@ -1308,7 +1340,7 @@ $("p-preview").addEventListener("click", () => {
     name: $("p-name").value.trim() || "منتج تجريبي",
     categoryName: "معاينة قبل الحفظ",
     description: $("p-desc").value.trim(),
-    usage: $("p-usage").value.trim(),
+    usage: $("p-usage").value.trim(), country: $("p-country").value.trim(),
     images: currentImages,
     sizes,
     flavors: readFlavorsFromUI(),
@@ -1440,11 +1472,12 @@ async function loadCust() {
     os.docs.forEach(d => { const o = d.data(), k = o.phone || "—"; if (!m[k]) m[k] = { name: o.customerName, n: 0, sum: 0 }; m[k].n++; if (o.status !== "cancelled") m[k].sum += Number(o.total) || 0; });
     const l = Object.entries(m).sort((a, b) => b[1].n - a[1].n);
     box.replaceChildren(...(l.length ? l.map(([ph, c], i) => { const r = createElement("div", "", "item"), inf = createElement("div", "", "info");
-      inf.append(createElement("b", `${i === 0 && c.n ? "🏆 " : ""}${c.name || "زبون"} ${c.n >= 3 ? "⭐ مميز" : ""}`), createElement("div", `📞 ${ph} • ${c.n} طلب • ${c.sum} ر.س`, "meta")); r.append(inf); if (c.uid) r.append(createButton("حذف", async () => { if (confirm("حذف هذا العميل نهائياً؟")) { await deleteDoc(doc(db, "customers", c.uid)); loadCust(); } }, "danger")); return r; }) : [createElement("p", "لا يوجد زبائن بعد.", "hint")]));
+      inf.append(createElement("b", `${i === 0 && c.n ? "🏆 " : ""}${c.name || "زبون"} ${c.n >= 3 ? "⭐ مميز" : ""}`), createElement("div", `📞 ${ph} • ${c.n} طلب • ${c.sum} ر.س`, "meta")); r.append(inf); r.style.cursor = "pointer"; inf.addEventListener("click", () => openCustProfile(ph, c.uid, c.name)); if (c.uid) r.append(createButton("حذف", async () => { if (confirm("حذف هذا العميل نهائياً؟")) { await deleteDoc(doc(db, "customers", c.uid)); loadCust(); } }, "danger")); return r; }) : [createElement("p", "لا يوجد زبائن بعد.", "hint")]));
   } catch (e) { showToast("تعذر التحميل: " + e.message, true); }
 }
 async function loadFb() {
-  for (const [col, id] of [["suggestions", "sugList"], ["reports", "repList"], ["comments", "cmList"]]) {
+  loadCmGrouped();
+  for (const [col, id] of [["suggestions", "sugList"], ["reports", "repList"]]) {
     const box = $(id);
     try { const s = await getDocs(collection(db, col)); const l = s.docs.sort((a, b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0));
       box.replaceChildren(...(l.length ? l.map(d => { const x = d.data(), r = createElement("div", "", "item"), inf = createElement("div", "", "info");
@@ -1453,6 +1486,81 @@ async function loadFb() {
     } catch (e) { showToast("تعذر التحميل", true); }
   }
 }
+/* ---------- طلباتي والتقييمات ---------- */
+async function loadMine() {
+  try {
+    const [rs, os] = await Promise.all([getDocs(collection(db, "ratings")), getDocs(collection(db, "orders"))]);
+    const rats = rs.docs.map(d => d.data()).sort((x, y) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0));
+    const fill = (box, arr, label) => box.replaceChildren(...(arr.length ? arr.map(r => {
+      const it = createElement("div", "", "item"), inf = createElement("div", "", "info");
+      inf.append(createElement("b", `${"⭐".repeat(r.stars || 0)} ${label(r)}`), createElement("div", `${r.name || "زبون"}${r.text ? " • " + r.text : ""}`, "meta"));
+      it.append(inf); return it;
+    }) : [createElement("p", "لا توجد تقييمات بعد.", "hint")]));
+    fill($("ratProd"), rats.filter(r => r.type === "product"), r => r.items || "منتج");
+    fill($("ratCour"), rats.filter(r => r.type === "courier"), r => `🚚 ${r.courier || "مندوب"}`);
+    const ords = os.docs.map(d => d.data()).sort((x, y) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0)).slice(0, 50);
+    $("ordTrack").replaceChildren(...(ords.length ? ords.map(o => {
+      const it = createElement("div", "", "item"), inf = createElement("div", "", "info");
+      inf.append(createElement("b", `${o.customerName || "زبون"} — ${Number(o.total) || 0} ر.س`), createElement("div", `الحالة: ${o.status || "—"} • ${o.courier ? "🚚 " + o.courier : "بدون مندوب"}`, "meta"));
+      it.append(inf); return it;
+    }) : [createElement("p", "لا توجد طلبات.", "hint")]));
+  } catch (e) { showToast("تعذر التحميل: " + e.message, true); }
+}
+
+/* ---------- التعليقات مجمعة على كل منتج ---------- */
+async function loadCmGrouped() {
+  const box = $("cmList");
+  try {
+    const s = await getDocs(collection(db, "comments"));
+    const byP = {};
+    s.docs.map(d => d.data()).sort((x, y) => (x.createdAt?.seconds || 0) - (y.createdAt?.seconds || 0)).forEach(x => {
+      const pk = x.pid || x.pname || "—";
+      const P = (byP[pk] ??= { pname: x.pname || "منتج", users: {} });
+      const uk = x.cid || x.name || "زائر";
+      (P.users[uk] ??= { name: x.name || "زائر", msgs: [] }).msgs.push(x.text || "");
+    });
+    const prods = Object.values(byP);
+    box.replaceChildren(...(prods.length ? prods.map(P => {
+      const total = Object.values(P.users).reduce((n, u) => n + u.msgs.length, 0);
+      const r = createElement("div", "", "item"), inf = createElement("div", "", "info");
+      inf.append(createElement("b", `🛍️ ${P.pname} — ${total} تعليق`));
+      Object.values(P.users).forEach(U => inf.append(createElement("div", `👤 ${U.name}: ` + U.msgs.map((m, i) => `(${i + 1}) ${m}`).join(" • "), "meta")));
+      r.append(inf); return r;
+    }) : [createElement("p", "لا توجد تعليقات.", "hint")]));
+  } catch (e) { box.textContent = "تعذر التحميل"; }
+}
+
+/* ---------- ملف الزبون الشخصي ---------- */
+async function openCustProfile(ph, uid, name) {
+  try {
+    const [os, sg, rp, cm, cu] = await Promise.all([
+      ph ? getDocs(query(collection(db, "orders"), where("phone", "==", ph))) : { docs: [] },
+      ph ? getDocs(query(collection(db, "suggestions"), where("phone", "==", ph))) : { docs: [] },
+      ph ? getDocs(query(collection(db, "reports"), where("phone", "==", ph))) : { docs: [] },
+      uid ? getDocs(query(collection(db, "comments"), where("cid", "==", uid))) : { docs: [] },
+      uid ? getDoc(doc(db, "customers", uid)) : null
+    ]);
+    const c = cu && cu.exists() ? cu.data() : {};
+    const days = (c.visitDays || []).length, visits = c.visits || 0, mins = c.minutes || 0;
+    const sec = (title, arr, fmt) => [createElement("h3", title), ...(arr.length ? arr.map(fmt) : [createElement("p", "لا يوجد", "hint")])];
+    const line = t => createElement("div", t, "meta");
+    const ordersArr = os.docs.map(d => d.data()).sort((x, y) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0));
+    showModal([
+      createElement("h2", `${name || c.name || "زبون"}`),
+      createElement("p", `📞 ${ph || "—"}`, "hint"),
+      createElement("p", `📅 دخل ${days} يوم • ${visits} زيارة • ⏱️ ${mins} دقيقة على الموقع`),
+      ...sec(`🛍️ المشتريات (${ordersArr.length})`, ordersArr, o => line(`${Number(o.total) || 0} ر.س — ${o.status || ""} — ${(o.items || []).map(i => `${i.qty || 1}x ${i.name}`).join("، ")}`)),
+      ...sec(`💬 تعليقاته (${cm.docs.length})`, cm.docs.map(d => d.data()), x => line(`على «${x.pname || "منتج"}»: ${x.text || ""}`)),
+      ...sec(`💡 اقتراحاته (${sg.docs.length})`, sg.docs.map(d => d.data()), x => line(x.text || "")),
+      ...sec(`⚠️ بلاغاته (${rp.docs.length})`, rp.docs.map(d => d.data()), x => line(x.text || ""))
+    ]);
+  } catch (e) { showToast("تعذر التحميل: " + e.message, true); }
+}
+$("hotReset").addEventListener("click", async () => {
+  if (!confirm("إعادة تعيين الأكثر طلباً؟ المبيعات السابقة لن تُحسب بعد الآن.")) return;
+  try { await setDoc(doc(db, "settings", "hotreset"), { at: serverTimestamp() }); showToast("تمت إعادة تعيين الأكثر طلباً ✓"); }
+  catch (e) { showToast("تعذر: " + e.message, true); }
+});
 async function loadTeam() {
   try { const rat = {}; (await getDocs(collection(db, "orders"))).docs.forEach(o => { const x = o.data(); if (x.courier && x.rating) (rat[x.courier] ??= []).push(x.rating); });
     const rt = n => rat[n] ? ` — ⭐ ${(rat[n].reduce((a, b) => a + b, 0) / rat[n].length).toFixed(1)} (${rat[n].length} تقييم)` : ""; const s = await getDocs(collection(db, "staff"));
@@ -1467,7 +1575,8 @@ $("tForm").addEventListener("submit", async e => {
   } catch (err) { showToast("تعذر الإنشاء: " + err.message, true); }
 });
 /* ---------- الإعدادات ---------- */
-const EX = [["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["unassignedAlertMin","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["contactNumbers","t"],["requireVerified","b"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"],["vipOrders","t"],["vipPercent","t"],["siteUrl","t"],["shopLocation","t"],["botWelcome","t"]];
+const EX = [["annText","t"],["annOn","b"],["annBg","t"],["annImg","t"],["instructions","t"],["tutorials","t"],["heroTitle","t"],["heroSub","t"],["color","t"],["videoUrl","t"],["videoMode","t"],["cols","t"],["locMode","t"],["msgPrefix","t"],["footer","t"],["insta","t"],["vAuto","b"],["vLoop","b"],["vMute","b"],["showFeat","b"],["freeFrom","t"],["etaText","t"],["unassignedAlertMin","t"],["pickupOn","b"],["giftOn","b"],["waFloat","b"],["contactNumbers","t"],["requireVerified","b"],["logoUrl","t"],["bgImages","t"],["themesText","t"],["feeNote","t"],["welcomeText","t"],["dhikrText","t"],["districts","t"],["ownerEmail","t"],["vipOrders","t"],["vipPercent","t"],["siteUrl","t"],["shopLocation","t"],["botWelcome","t"]];
+$("x-annFile").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; const u = await uploadImageToServer(f); if (u) { $("x-annImg").value = u; showToast("تم رفع صورة الإعلان — اضغط حفظ"); } e.target.value = ""; });
 $("x-logoFile").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; const u = await uploadImageToServer(f); if (u) { $("x-logoUrl").value = u; showToast("تم رفع الشعار — اضغط حفظ"); } e.target.value = ""; });
 $("x-bgFiles").addEventListener("change", async e => { const t = $("x-bgImages"), n = t.value.split("\n").map(x => x.trim()).filter(Boolean); for (const f of [...e.target.files]) { if (n.length >= 10) break; const u = await uploadImageToServer(f); if (u) n.push(u); } t.value = n.join("\n"); e.target.value = ""; showToast("تم رفع الخلفيات — اضغط حفظ"); });
 async function compress(file, max = 1000, q = 0.74) {
