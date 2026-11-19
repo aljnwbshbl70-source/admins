@@ -281,6 +281,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
         <div class="grid3">
           <div><label for="q">البحث بالاسم</label><input id="q" placeholder="ابحث باسم المنتج..."></div>
           <div><label for="fcat">تصفية حسب القسم</label><select id="fcat"></select></div>
+          <div><label for="fcountry">تصفية حسب بلد المنشأ</label><select id="fcountry"></select></div>
           <div style="display:flex; align-items:flex-end; gap:8px;">
             <button id="searchBtn" class="main" type="button">بحث</button>
             <button id="newBtn" class="secondary" type="button" style="white-space:nowrap">+ منتج جديد</button>
@@ -986,6 +987,7 @@ function buildProductsQuery() {
 
 async function loadProducts(reset = false) {
   if (reset) { products = []; lastProdDoc = null; $("pList").replaceChildren(); }
+  if ($("fcountry") && $("fcountry").value) return loadProductsByCountry();
   try {
     const snap = await getDocs(buildProductsQuery());
     snap.docs.forEach(d => {
@@ -1001,6 +1003,26 @@ async function loadProducts(reset = false) {
   }
 }
 
+/* ---------- بلد المنشأ: فلترة وحفظ مباشر لكل منتج ---------- */
+function fillCountrySelects() {
+  const fc = $("fcountry");
+  if (fc && !fc.options.length) {
+    fc.append(new Option("كل البلدان", ""), new Option("بدون بلد", "__none__"));
+    COUNTRIES.forEach(([n, f]) => fc.append(new Option(`${f} ${n}`, `${f} ${n}`)));
+    fc.addEventListener("change", () => loadProducts(true));
+  }
+}
+async function loadProductsByCountry() {
+  try {
+    const snap = await getDocs(collection(db, "products"));
+    const c = $("fcountry").value, q = $("q").value.trim().toLowerCase();
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p =>
+      (c === "__none__" ? !p.country : p.country === c) && (!q || (p.name || "").toLowerCase().includes(q)));
+    products = list;
+    $("pList").replaceChildren(...(list.length ? list.map(renderProductRow) : [createElement("p", "لا توجد منتجات تطابق الفلتر.", "hint")]));
+    $("moreBtn").hidden = true;
+  } catch (err) { showToast("تعذر تحميل المنتجات: " + err.message, true); }
+}
 function renderProductRow(prod) {
   const row = createElement("div", "", "item");
   const img = document.createElement("img");
@@ -1027,11 +1049,30 @@ function renderProductRow(prod) {
     createButton(prod.status === "hidden" ? "إظهار" : "إخفاء", () => toggleProductStatus(prod)),
     createButton("حذف", () => deleteProduct(prod), "danger")
   );
+  const cs = createElement("select");
+  cs.append(new Option("— بدون بلد —", ""));
+  COUNTRIES.forEach(([n, f]) => cs.append(new Option(`${f} ${n}`, `${f} ${n}`)));
+  if (prod.country && !COUNTRIES.some(([n, f]) => `${f} ${n}` === prod.country)) cs.append(new Option(prod.country, prod.country));
+  cs.value = prod.country || "";
+  const csave = createButton("💾 حفظ البلد", async () => {
+    try { await updateDoc(doc(db, "products", prod.id), { country: cs.value }); prod.country = cs.value; showToast("تم حفظ بلد المنشأ ✓"); }
+    catch (e) { showToast("تعذر الحفظ: " + e.message, true); }
+  }, "main");
+  const cline = createElement("div", "", "");
+  cline.style.cssText = "display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap";
+  cline.append(createElement("span", "🌍 بلد المنشأ:"), cs, csave);
+  info.append(cline);
   row.append(img, info, acts);
   return row;
 }
 
 $("searchBtn").addEventListener("click", () => loadProducts(true));
+fillCountrySelects();
+let _pDeb = null;
+onSnapshot(collection(db, "products"), () => {
+  clearTimeout(_pDeb);
+  _pDeb = setTimeout(() => { if (!$("v-prods").hidden) loadProducts(true); }, 800);
+});
 $("q").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); loadProducts(true); } });
 $("fcat").addEventListener("change", () => loadProducts(true));
 $("moreBtn").addEventListener("click", () => loadProducts(false));
