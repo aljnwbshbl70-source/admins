@@ -574,6 +574,7 @@ button.danger:hover { background: var(--bad); color: #fff; }
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
+const COUNTRIES = [["السعودية","🇸🇦"],["الإمارات","🇦🇪"],["الكويت","🇰🇼"],["قطر","🇶🇦"],["البحرين","🇧🇭"],["عُمان","🇴🇲"],["اليمن","🇾🇪"],["مصر","🇪🇬"],["الأردن","🇯🇴"],["لبنان","🇱🇧"],["سوريا","🇸🇾"],["العراق","🇮🇶"],["فلسطين","🇵🇸"],["المغرب","🇲🇦"],["الجزائر","🇩🇿"],["تونس","🇹🇳"],["ليبيا","🇱🇾"],["السودان","🇸🇩"],["تركيا","🇹🇷"],["إيران","🇮🇷"],["الهند","🇮🇳"],["باكستان","🇵🇰"],["الصين","🇨🇳"],["اليابان","🇯🇵"],["كوريا الجنوبية","🇰🇷"],["تايلاند","🇹🇭"],["ماليزيا","🇲🇾"],["إندونيسيا","🇮🇩"],["فرنسا","🇫🇷"],["ألمانيا","🇩🇪"],["إيطاليا","🇮🇹"],["إسبانيا","🇪🇸"],["المملكة المتحدة","🇬🇧"],["الولايات المتحدة","🇺🇸"],["البرازيل","🇧🇷"]];
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs, getCountFromServer, query, where, orderBy, limit, startAfter, serverTimestamp, onSnapshot, deleteField } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
@@ -1168,7 +1169,6 @@ function readFlavorsFromUI() {
   return list;
 }
 
-const COUNTRIES = [["السعودية","🇸🇦"],["الإمارات","🇦🇪"],["الكويت","🇰🇼"],["قطر","🇶🇦"],["البحرين","🇧🇭"],["عُمان","🇴🇲"],["اليمن","🇾🇪"],["مصر","🇪🇬"],["الأردن","🇯🇴"],["لبنان","🇱🇧"],["سوريا","🇸🇾"],["العراق","🇮🇶"],["فلسطين","🇵🇸"],["المغرب","🇲🇦"],["الجزائر","🇩🇿"],["تونس","🇹🇳"],["ليبيا","🇱🇾"],["السودان","🇸🇩"],["تركيا","🇹🇷"],["إيران","🇮🇷"],["الهند","🇮🇳"],["باكستان","🇵🇰"],["الصين","🇨🇳"],["اليابان","🇯🇵"],["كوريا الجنوبية","🇰🇷"],["تايلاند","🇹🇭"],["ماليزيا","🇲🇾"],["إندونيسيا","🇮🇩"],["فرنسا","🇫🇷"],["ألمانيا","🇩🇪"],["إيطاليا","🇮🇹"],["إسبانيا","🇪🇸"],["المملكة المتحدة","🇬🇧"],["الولايات المتحدة","🇺🇸"],["البرازيل","🇧🇷"]];
 function drawCountries(q = "") {
   const n = q.trim(), cl = $("p-countryList");
   const list = COUNTRIES.filter(([name]) => !n || name.includes(n));
